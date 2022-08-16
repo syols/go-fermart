@@ -1,0 +1,10 @@
+# default.yml
+
+address:
+  host: 0.0.0.0
+  port: 8080
+accural:
+  host: 0.0.0.0
+  port: 8080
+database: "postgres://postgres:postgres@localhost/postgres?sslmode=disable"
+key: null
