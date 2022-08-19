@@ -2,9 +2,11 @@
 
 address:
   host: 0.0.0.0
-  port: 8080
+  port: 8088
+
 accural:
   host: 0.0.0.0
   port: 8080
+
 database: "postgres://postgres:postgres@localhost/postgres?sslmode=disable"
-key: null
+sign: "some_sign"

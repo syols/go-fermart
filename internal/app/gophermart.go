@@ -2,26 +2,28 @@ package app
 
 import (
 	"context"
-	"github.com/gin-gonic/contrib/gzip"
-	"github.com/gin-gonic/gin"
-	"github.com/syols/go-devops/config"
-	"github.com/syols/go-devops/internal/database"
-	"github.com/syols/go-devops/internal/handlers"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/gin-gonic/contrib/gzip"
+	"github.com/gin-gonic/gin"
+	"github.com/syols/go-devops/config"
+	"github.com/syols/go-devops/internal/handlers"
+	"github.com/syols/go-devops/internal/pkg/authorizer"
+	"github.com/syols/go-devops/internal/pkg/database"
 )
 
 type Server struct {
 	server   http.Server
-	database database.Database
 	settings config.Config
 }
 
 func NewServer(settings config.Config) (Server, error) {
-	db, err := database.NewDatabase(settings.DatabaseConnectionString)
+	auth := authorizer.NewAuthorizer(settings)
+	db, err := database.NewConnection(settings)
 	if err != nil {
 		return Server{}, err
 	}
@@ -29,10 +31,9 @@ func NewServer(settings config.Config) (Server, error) {
 	return Server{
 		server: http.Server{
 			Addr:    settings.Address(),
-			Handler: router(),
+			Handler: router(db, auth),
 		},
 		settings: settings,
-		database: db,
 	}, nil
 }
 
@@ -46,19 +47,22 @@ func (s *Server) Run() {
 	}
 }
 
-func router() *gin.Engine {
+func router(connection database.Connection, auth authorizer.Authorizer) *gin.Engine {
 	router := gin.Default()
 	router.Use(gin.Recovery())
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
-
 	router.GET("/healthcheck", handlers.Healthcheck)
-	api := router.Group("/api/user")
-	api.POST("/register", handlers.Register)
-	api.POST("/login", handlers.Login)
-	api.POST("/orders", handlers.SetUserOrders)
-	api.GET("/orders", handlers.UserOrders)
 
-	balance := api.Group("/balance")
+	api := router.Group("/api/user")
+	api.POST("/register", handlers.Register(connection, auth))
+	api.POST("/login", handlers.Login(connection, auth))
+
+	authorized := api.Group("/")
+	authorized.Use(handlers.AuthMiddleware(connection, auth))
+	authorized.POST("/orders", handlers.SetUserOrder(connection))
+	authorized.GET("/orders", handlers.Orders(connection))
+
+	balance := authorized.Group("/balance")
 	balance.GET("/", handlers.Balance)
 	balance.GET("/withdraw", handlers.Withdraw)
 	balance.GET("/withdrawals", handlers.Withdrawals)

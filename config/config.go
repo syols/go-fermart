@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net"
 	"strconv"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Option func(s *Config)
@@ -14,7 +15,7 @@ type Config struct {
 	ServerAddress            Address `yaml:"address"`
 	AccuralAddress           Address `yaml:"accural"`
 	DatabaseConnectionString string  `yaml:"database"`
-	Key                      *string `yaml:"key" env:"KEY"`
+	Sign                     string  `yaml:"Sign"`
 }
 
 type Address struct {
@@ -23,7 +24,7 @@ type Address struct {
 }
 
 func NewConfig() (settings Config, err error) {
-	if err := settings.setDefault("/Users/s.olshanskiy/Documents/github/projects/go-fermart/develop.yml"); err != nil {
+	if err := settings.setDefault("develop.yml"); err != nil {
 		return Config{}, err
 	}
 	return settings.setFromOptions(NewEnvironmentVariables().Options()...), nil
@@ -81,14 +82,14 @@ func withAccuralAddress(address string) Option {
 	}
 }
 
-func withKey(value string) Option {
-	return func(s *Config) {
-		s.Key = &value
-	}
-}
-
 func withDatabase(value string) Option {
 	return func(s *Config) {
 		s.DatabaseConnectionString = value
+	}
+}
+
+func withSign(value string) Option {
+	return func(s *Config) {
+		s.Sign = value
 	}
 }

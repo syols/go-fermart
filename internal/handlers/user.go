@@ -1,22 +1,72 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/syols/go-devops/internal/models"
+	"github.com/syols/go-devops/internal/pkg/authorizer"
+	"github.com/syols/go-devops/internal/pkg/database"
 )
 
-func Register(c *gin.Context) {
-	c.String(http.StatusOK, "OK")
+func Register(connection database.Connection, authorizer authorizer.Authorizer) gin.HandlerFunc {
+	return func(context *gin.Context) {
+		var user models.User
+
+		if err := context.BindJSON(&user); err != nil {
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		if err := user.Validate(); err != nil {
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		err := user.Register(context, connection)
+		if err != nil {
+			context.AbortWithStatus(http.StatusConflict)
+			return
+		}
+
+		token, err := authorizer.CreateToken(user)
+		if err != nil {
+			context.AbortWithStatus(http.StatusConflict)
+			return
+		}
+
+		context.Header("Authorization", "Bearer "+token)
+		context.Status(http.StatusOK)
+	}
 }
 
-func Login(c *gin.Context) {
-	c.String(http.StatusOK, "OK")
-}
+func Login(connection database.Connection, authorizer authorizer.Authorizer) gin.HandlerFunc {
+	return func(context *gin.Context) {
+		var user models.User
 
-func SetUserOrders(c *gin.Context) {
-	c.String(http.StatusOK, "OK")
-}
+		if err := context.BindJSON(&user); err != nil {
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
 
-func UserOrders(c *gin.Context) {
-	c.String(http.StatusOK, "OK")
+		if err := user.Validate(); err != nil {
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		dbUser, err := user.Login(context, connection)
+		if err != nil || dbUser.Username != user.Username {
+			context.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		token, err := authorizer.CreateToken(user)
+		if err != nil {
+			context.AbortWithStatus(http.StatusConflict)
+			return
+		}
+
+		context.Header("Authorization", "Bearer "+token)
+		context.Status(http.StatusOK)
+	}
 }

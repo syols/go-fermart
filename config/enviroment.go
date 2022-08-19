@@ -27,7 +27,7 @@ func NewEnvironmentVariables() EnvironmentVariables {
 		newVariable("RUN_ADDRESS", "a"):            withServerAddress,
 		newVariable("DATABASE_URI", "d"):           withDatabase,
 		newVariable("ACCRUAL_SYSTEM_ADDRESS", "r"): withAccuralAddress,
-		newVariable("KEY", "k"):                    withKey,
+		newVariable("SIGN", "sn"):                  withSign,
 	}
 }
 
