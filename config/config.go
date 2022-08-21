@@ -12,10 +12,10 @@ import (
 type Option func(s *Config)
 
 type Config struct {
-	ServerAddress            Address `yaml:"address"`
-	AccuralAddress           Address `yaml:"accural"`
-	DatabaseConnectionString string  `yaml:"database"`
-	Sign                     string  `yaml:"Sign"`
+	ServerAddress  Address `yaml:"address"`
+	AccrualAddress Address `yaml:"accrual"`
+	DatabaseURL    string  `yaml:"database"`
+	Sign           string  `yaml:"sign"`
 }
 
 type Address struct {
@@ -27,14 +27,10 @@ func NewConfig() (settings Config, err error) {
 	if err := settings.setDefault("develop.yml"); err != nil {
 		return Config{}, err
 	}
-	return settings.setFromOptions(NewEnvironmentVariables().Options()...), nil
+	return settings.set(NewEnvironmentVariables().Options()...), nil
 }
 
-func (s *Config) Address() string {
-	return fmt.Sprintf("%s:%d", s.ServerAddress.Host, s.ServerAddress.Port)
-}
-
-func (s *Config) setFromOptions(options ...Option) Config {
+func (s *Config) set(options ...Option) Config {
 	for _, fn := range options {
 		fn(s)
 	}
@@ -71,12 +67,12 @@ func withServerAddress(address string) Option {
 	}
 }
 
-func withAccuralAddress(address string) Option {
+func withAccrualAddress(address string) Option {
 	return func(s *Config) {
 		if host, port, err := net.SplitHostPort(address); err == nil {
 			if port, err := strconv.ParseUint(port, 0, 16); err == nil {
-				s.AccuralAddress.Host = host
-				s.AccuralAddress.Port = uint16(port)
+				s.AccrualAddress.Host = host
+				s.AccrualAddress.Port = uint16(port)
 			}
 		}
 	}
@@ -84,7 +80,7 @@ func withAccuralAddress(address string) Option {
 
 func withDatabase(value string) Option {
 	return func(s *Config) {
-		s.DatabaseConnectionString = value
+		s.DatabaseURL = value
 	}
 }
 
@@ -92,4 +88,8 @@ func withSign(value string) Option {
 	return func(s *Config) {
 		s.Sign = value
 	}
+}
+
+func (a Address) String() string {
+	return fmt.Sprintf("%s:%d", a.Host, a.Port)
 }

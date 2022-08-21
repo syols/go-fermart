@@ -26,7 +26,7 @@ func NewEnvironmentVariables() EnvironmentVariables {
 	return EnvironmentVariables{
 		newVariable("RUN_ADDRESS", "a"):            withServerAddress,
 		newVariable("DATABASE_URI", "d"):           withDatabase,
-		newVariable("ACCRUAL_SYSTEM_ADDRESS", "r"): withAccuralAddress,
+		newVariable("ACCRUAL_SYSTEM_ADDRESS", "r"): withAccrualAddress,
 		newVariable("SIGN", "sn"):                  withSign,
 	}
 }
@@ -42,7 +42,6 @@ func (e EnvironmentVariables) Options() (options []Option) {
 		if variable != "" {
 			options = append(options, v(variable))
 		}
-
 	}
 	return
 }

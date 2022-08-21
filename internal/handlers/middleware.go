@@ -10,7 +10,7 @@ import (
 	"github.com/syols/go-devops/internal/pkg/database"
 )
 
-func AuthMiddleware(connection database.Connection, authorizer authorizer.Authorizer) gin.HandlerFunc {
+func AuthMiddleware(connection database.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		auth := context.GetHeader("Authorization")
 		if auth == "" {
@@ -22,6 +22,7 @@ func AuthMiddleware(connection database.Connection, authorizer authorizer.Author
 		header := strings.Split(auth, " ")
 		if len(header) != 2 || header[0] != "Bearer" {
 			context.AbortWithStatus(http.StatusUnauthorized)
+			return
 		}
 
 		token := header[1]

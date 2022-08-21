@@ -17,21 +17,21 @@ func (user User) Validate() error {
 	return validator.New().Struct(user)
 }
 
-func (user User) Register(ctx context.Context, connection database.Connection) error {
-	_, err := connection.Execute(ctx, database.UserRegisterQuery, user)
+func (user User) Register(ctx context.Context, connection database.Database) error {
+	_, err := connection.Execute(ctx, "user_register.sql", user)
 	return err
 }
 
-func (user User) Login(ctx context.Context, connection database.Connection) (*User, error) {
-	rows, err := connection.Execute(ctx, database.UserLoginQuery, user)
+func (user User) Login(ctx context.Context, connection database.Database) (*User, error) {
+	rows, err := connection.Execute(ctx, "user_login.sql", user)
 	if err != nil {
 		return nil, err
 	}
 	return database.ScanOne[User](*rows)
 }
 
-func (user User) Verify(ctx context.Context, connection database.Connection) (*User, error) {
-	rows, err := connection.Execute(ctx, database.UserSelectQuery, user)
+func (user User) Verify(ctx context.Context, connection database.Database) (*User, error) {
+	rows, err := connection.Execute(ctx, "user_select.sql", user)
 	if err != nil {
 		return nil, err
 	}

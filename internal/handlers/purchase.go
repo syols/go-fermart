@@ -7,9 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/syols/go-devops/internal/models"
 	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/validator"
 )
 
-func SetUserOrder(connection database.Connection) gin.HandlerFunc {
+func CreatePurchase(connection database.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		bytes, err := ioutil.ReadAll(context.Request.Body)
 		if err != nil {
@@ -23,20 +24,20 @@ func SetUserOrder(connection database.Connection) gin.HandlerFunc {
 			return
 		}
 
-		order := models.NewOrder(string(bytes), userId.(int))
-		if err := order.Validate(); err != nil {
+		purchase := models.NewPurchase(string(bytes), userId.(int))
+		if err := validator.Validate(purchase); err != nil {
 			context.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
 
-		dbOrder, err := order.Select(context, connection)
+		dbPurchase, err := models.LoadPurchase(context, connection, purchase.UserId)
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
-		if dbOrder != nil {
-			if order.UserId == dbOrder.UserId {
+		if dbPurchase != nil {
+			if purchase.UserId == dbPurchase.UserId {
 				context.Status(http.StatusOK)
 				return
 			}
@@ -44,7 +45,7 @@ func SetUserOrder(connection database.Connection) gin.HandlerFunc {
 			return
 		}
 
-		if err := order.Create(context, connection); err != nil {
+		if err := purchase.Create(context, connection); err != nil {
 			context.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
@@ -52,19 +53,23 @@ func SetUserOrder(connection database.Connection) gin.HandlerFunc {
 	}
 }
 
-func Orders(connection database.Connection) gin.HandlerFunc {
+func Purchases(connection database.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userId, isOk := context.Get("id")
 		if !isOk {
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
-		order := models.Order{UserId: userId.(int)}
-		orders, err := order.UserOrders(context, connection)
+
+		purchases, err := models.LoadPurchases(context, connection, userId.(int))
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		context.JSON(http.StatusOK, orders)
+		if purchases == nil || len(*purchases) == 0 {
+			context.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		context.JSON(http.StatusOK, purchases)
 	}
 }

@@ -11,16 +11,16 @@ import (
 
 type UserClaims struct {
 	jwt.StandardClaims
-	Username string `json:"login"`
+	Username string
 }
 
 type Authorizer struct {
-	sign string
+	sign []byte
 }
 
 func NewAuthorizer(config config.Config) Authorizer {
 	return Authorizer{
-		sign: config.Sign,
+		sign: []byte(config.Sign),
 	}
 }
 
@@ -42,7 +42,7 @@ func (a Authorizer) VerifyToken(token string) (string, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, auth.ErrAuthenticationFailure
 		}
-		return []byte(a.sign), nil
+		return a.sign, nil
 	})
 	return claims.Username, err
 }

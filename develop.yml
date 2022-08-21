@@ -4,7 +4,7 @@ address:
   host: 0.0.0.0
   port: 8088
 
-accural:
+accrual:
   host: 0.0.0.0
   port: 8080
 

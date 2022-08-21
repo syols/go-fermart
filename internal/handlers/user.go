@@ -7,29 +7,23 @@ import (
 	"github.com/syols/go-devops/internal/models"
 	"github.com/syols/go-devops/internal/pkg/authorizer"
 	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/validator"
 )
 
-func Register(connection database.Connection, authorizer authorizer.Authorizer) gin.HandlerFunc {
+func Register(connection database.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		var user models.User
-
-		if err := context.BindJSON(&user); err != nil {
-			context.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-
-		if err := user.Validate(); err != nil {
-			context.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-
-		err := user.Register(context, connection)
+		user, err := bindUser(context)
 		if err != nil {
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		if err := user.Register(context, connection); err != nil {
 			context.AbortWithStatus(http.StatusConflict)
 			return
 		}
 
-		token, err := authorizer.CreateToken(user)
+		token, err := authorizer.CreateToken(*user)
 		if err != nil {
 			context.AbortWithStatus(http.StatusConflict)
 			return
@@ -40,33 +34,37 @@ func Register(connection database.Connection, authorizer authorizer.Authorizer) 
 	}
 }
 
-func Login(connection database.Connection, authorizer authorizer.Authorizer) gin.HandlerFunc {
+func Login(connection database.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		var user models.User
-
-		if err := context.BindJSON(&user); err != nil {
-			context.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-
-		if err := user.Validate(); err != nil {
+		user, err := bindUser(context)
+		if err != nil {
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 
 		dbUser, err := user.Login(context, connection)
 		if err != nil || dbUser.Username != user.Username {
-			context.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-
-		token, err := authorizer.CreateToken(user)
-		if err != nil {
 			context.AbortWithStatus(http.StatusConflict)
 			return
 		}
 
+		token, err := authorizer.CreateToken(*dbUser)
+		if err != nil {
+			context.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
 		context.Header("Authorization", "Bearer "+token)
 		context.Status(http.StatusOK)
 	}
+}
+
+func bindUser(context *gin.Context) (*models.User, error) {
+	var user models.User
+	if err := context.BindJSON(&user); err != nil {
+		return nil, err
+	}
+	if err := validator.Validate(user); err != nil {
+		return nil, err
+	}
+	return &user, nil
 }

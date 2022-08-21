@@ -20,43 +20,35 @@ const MigrationPath = "file://internal/pkg/database/migrations"
 
 type RelativePath string
 
-const (
-	UserLoginQuery        RelativePath = "user/login.sql"
-	UserRegisterQuery     RelativePath = "user/register.sql"
-	UserSelectQuery       RelativePath = "user/select.sql"
-	UserOrdersSelectQuery RelativePath = "order/user.sql"
-	OrderCreateQuery      RelativePath = "order/create.sql"
-	OrderUpdateQuery      RelativePath = "order/update.sql"
-	OrderSelectQuery      RelativePath = "order/select.sql"
-)
-
-type Connection struct {
-	string
+type Database struct {
+	databaseUrl string
+	scripts     map[string]string
 }
 
-func NewConnection(config config.Config) (db Connection, err error) {
-	db = Connection{
-		config.DatabaseConnectionString,
+func NewConnection(config config.Config) (connection Database, err error) {
+	connection = Database{
+		databaseUrl: config.DatabaseURL,
+		scripts:     map[string]string{},
 	}
 
-	m, err := migrate.New(MigrationPath, config.DatabaseConnectionString)
+	m, err := migrate.New(MigrationPath, connection.databaseUrl)
 	if err != nil {
-		return db, err
+		return connection, err
 	}
 
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return db, err
+		return connection, err
 	}
-	return db, nil
+	return
 }
 
-func (c Connection) Execute(ctx context.Context, script RelativePath, model any) (*sqlx.Rows, error) {
-	query, err := ioutil.ReadFile(filepath.Join(ScriptPath, string(script)))
+func (d Database) Execute(ctx context.Context, filename string, model any) (*sqlx.Rows, error) {
+	script, err := d.script(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	db, err := sqlx.ConnectContext(ctx, "postgres", c.string)
+	db, err := sqlx.ConnectContext(ctx, "postgres", d.databaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +60,21 @@ func (c Connection) Execute(ctx context.Context, script RelativePath, model any)
 		}
 	}(db)
 
-	return db.NamedQuery(string(query), model)
+	return db.NamedQuery(script, model)
+}
+
+func (d Database) script(filename string) (string, error) {
+	script, isOk := d.scripts[filename]
+	if !isOk {
+		bytes, err := ioutil.ReadFile(filepath.Join(ScriptPath, filename))
+		if err != nil {
+			return "", err
+		}
+
+		script = string(bytes)
+		d.scripts[filename] = script
+	}
+	return script, nil
 }
 
 func ScanOne[T any](rows sqlx.Rows) (*T, error) {

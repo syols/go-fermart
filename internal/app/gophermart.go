@@ -30,7 +30,7 @@ func NewServer(settings config.Config) (Server, error) {
 
 	return Server{
 		server: http.Server{
-			Addr:    settings.Address(),
+			Addr:    settings.ServerAddress.String(),
 			Handler: router(db, auth),
 		},
 		settings: settings,
@@ -47,25 +47,27 @@ func (s *Server) Run() {
 	}
 }
 
-func router(connection database.Connection, auth authorizer.Authorizer) *gin.Engine {
+func router(db database.Database, auth authorizer.Authorizer) *gin.Engine {
 	router := gin.Default()
 	router.Use(gin.Recovery())
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.GET("/healthcheck", handlers.Healthcheck)
 
 	api := router.Group("/api/user")
-	api.POST("/register", handlers.Register(connection, auth))
-	api.POST("/login", handlers.Login(connection, auth))
+	api.POST("/register", handlers.Register(db, auth))
+	api.POST("/login", handlers.Login(db, auth))
 
 	authorized := api.Group("/")
-	authorized.Use(handlers.AuthMiddleware(connection, auth))
-	authorized.POST("/orders", handlers.SetUserOrder(connection))
-	authorized.GET("/orders", handlers.Orders(connection))
+	authorized.Use(handlers.AuthMiddleware(db, auth))
 
-	balance := authorized.Group("/balance")
-	balance.GET("/", handlers.Balance)
-	balance.GET("/withdraw", handlers.Withdraw)
-	balance.GET("/withdrawals", handlers.Withdrawals)
+	orders := authorized.Group("/")
+	orders.POST("/orders", handlers.CreatePurchase(db))
+	orders.GET("/orders", handlers.Purchases(db))
+
+	balance := authorized.Group("/")
+	balance.GET("/balance", handlers.Balance(db))
+	balance.POST("/withdraw", handlers.CreateWithdraw(db))
+	balance.GET("/withdrawals", handlers.Withdrawals(db))
 
 	return router
 }
