@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
 	"github.com/syols/go-devops/internal/pkg/database"
 )
 
 type User struct {
-	Id       int    `json:"id" db:"id"`
+	ID       int    `json:"id" db:"id"`
 	Username string `json:"login" db:"login" validate:"min=1"`
 	Password string `json:"password" db:"password" validate:"min=1"`
 }
@@ -18,7 +19,10 @@ func (user User) Validate() error {
 }
 
 func (user User) Register(ctx context.Context, connection database.Database) error {
-	_, err := connection.Execute(ctx, "user_register.sql", user)
+	rows, err := connection.Execute(ctx, "user_register.sql", user)
+	if err := rows.Err(); err != nil {
+		return err
+	}
 	return err
 }
 
@@ -27,7 +31,21 @@ func (user User) Login(ctx context.Context, connection database.Database) (*User
 	if err != nil {
 		return nil, err
 	}
-	return database.ScanOne[User](*rows)
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return user.bindUser(rows)
+}
+
+func (user User) bindUser(rows *sqlx.Rows) (*User, error) {
+	var value User
+	if rows.Next() {
+		if err := rows.StructScan(&value); err != nil {
+			return nil, err
+		}
+	}
+
+	return &value, nil
 }
 
 func (user User) Verify(ctx context.Context, connection database.Database) (*User, error) {
@@ -35,5 +53,5 @@ func (user User) Verify(ctx context.Context, connection database.Database) (*Use
 	if err != nil {
 		return nil, err
 	}
-	return database.ScanOne[User](*rows)
+	return user.bindUser(rows)
 }

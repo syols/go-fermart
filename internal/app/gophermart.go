@@ -14,6 +14,7 @@ import (
 	"github.com/syols/go-devops/internal/handlers"
 	"github.com/syols/go-devops/internal/pkg/authorizer"
 	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/event"
 )
 
 type Server struct {
@@ -28,10 +29,15 @@ func NewServer(settings config.Config) (Server, error) {
 		return Server{}, err
 	}
 
+	sess, err := event.NewSession()
+	if err != nil {
+		log.Print(err.Error())
+	}
+
 	return Server{
 		server: http.Server{
 			Addr:    settings.ServerAddress.String(),
-			Handler: router(db, auth),
+			Handler: router(db, auth, sess),
 		},
 		settings: settings,
 	}, nil
@@ -47,9 +53,10 @@ func (s *Server) Run() {
 	}
 }
 
-func router(db database.Database, auth authorizer.Authorizer) *gin.Engine {
+func router(db database.Database, auth authorizer.Authorizer, sess *event.Session) *gin.Engine {
 	router := gin.Default()
 	router.Use(gin.Recovery())
+	router.Use(handlers.LoggerMiddleware())
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.GET("/healthcheck", handlers.Healthcheck)
 
@@ -61,14 +68,13 @@ func router(db database.Database, auth authorizer.Authorizer) *gin.Engine {
 	authorized.Use(handlers.AuthMiddleware(db, auth))
 
 	orders := authorized.Group("/")
-	orders.POST("/orders", handlers.CreatePurchase(db))
+	orders.POST("/orders", handlers.CreatePurchase(db, sess))
 	orders.GET("/orders", handlers.Purchases(db))
 
 	balance := authorized.Group("/")
 	balance.GET("/balance", handlers.Balance(db))
-	balance.POST("/withdraw", handlers.CreateWithdraw(db))
+	balance.POST("/balance/withdraw", handlers.CreateWithdraw(db))
 	balance.GET("/withdrawals", handlers.Withdrawals(db))
-
 	return router
 }
 

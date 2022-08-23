@@ -13,7 +13,7 @@ type Option func(s *Config)
 
 type Config struct {
 	ServerAddress  Address `yaml:"address"`
-	AccrualAddress Address `yaml:"accrual"`
+	AccrualAddress string  `yaml:"accrual"`
 	DatabaseURL    string  `yaml:"database"`
 	Sign           string  `yaml:"sign"`
 }
@@ -24,9 +24,6 @@ type Address struct {
 }
 
 func NewConfig() (settings Config, err error) {
-	if err := settings.setDefault("develop.yml"); err != nil {
-		return Config{}, err
-	}
 	return settings.set(NewEnvironmentVariables().Options()...), nil
 }
 
@@ -56,6 +53,10 @@ func (s *Config) String() (result string) {
 	return
 }
 
+func (s *Address) String() string {
+	return fmt.Sprintf("%s:%d", s.Host, s.Port)
+}
+
 func withServerAddress(address string) Option {
 	return func(s *Config) {
 		if host, port, err := net.SplitHostPort(address); err == nil {
@@ -69,12 +70,7 @@ func withServerAddress(address string) Option {
 
 func withAccrualAddress(address string) Option {
 	return func(s *Config) {
-		if host, port, err := net.SplitHostPort(address); err == nil {
-			if port, err := strconv.ParseUint(port, 0, 16); err == nil {
-				s.AccrualAddress.Host = host
-				s.AccrualAddress.Port = uint16(port)
-			}
-		}
+		s.AccrualAddress = address
 	}
 }
 
@@ -88,8 +84,4 @@ func withSign(value string) Option {
 	return func(s *Config) {
 		s.Sign = value
 	}
-}
-
-func (a Address) String() string {
-	return fmt.Sprintf("%s:%d", a.Host, a.Port)
 }

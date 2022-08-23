@@ -20,6 +20,8 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: praktikum
+          AWS_ACCESS_KEY_ID: AKIA52TFFBZFP3TOQRG2
+          AWS_SECRET_ACCESS_KEY: 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
         options: >-
           --health-cmd pg_isready
           --health-interval 5s

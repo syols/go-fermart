@@ -7,39 +7,50 @@ import (
 )
 
 type Purchase struct {
-	Number   string    `json:"order" db:"number" validate:"luhn"`
-	Score    *int      `json:"accrual,omitempty" db:"score"`
+	Number   string    `json:"number" db:"number" validate:"luhn"`
+	Score    *float32  `json:"accrual,omitempty" db:"score"`
 	Uploaded OrderTime `json:"uploaded_at" db:"ctime"`
 
-	UserId int         `json:"-" db:"user_id"`
+	UserID int         `json:"-" db:"user_id"`
 	Status OrderStatus `json:"status" db:"status" validate:"oneof=REGISTERED NEW INVALID PROCESSING PROCESSED"`
 	Action OrderAction `json:"-" db:"action" validate:"oneof=PURCHASE"`
 }
 
-func NewPurchase(number string, userId int) Purchase {
+func NewPurchase(number string, UserID int) Purchase {
 	return Purchase{
 		Number: number,
-		UserId: userId,
+		UserID: UserID,
 		Status: NewOrderStatus,
 		Action: PurchaseOrderAction,
 	}
 }
 
-func LoadPurchase(ctx context.Context, connection database.Database, userId int) (*Purchase, error) {
+func LoadPurchase(ctx context.Context, connection database.Database, number string) (*Purchase, error) {
 	purchase := Purchase{
-		UserId: userId,
+		Number: number,
 	}
 
 	rows, err := connection.Execute(ctx, "order_select.sql", purchase)
 	if err != nil {
 		return nil, err
 	}
-	return database.ScanOne[Purchase](*rows)
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	var value Purchase
+	if rows.Next() {
+		if err := rows.StructScan(&value); err != nil {
+			return nil, err
+		}
+		return &value, nil
+	}
+	return nil, nil
 }
 
-func LoadPurchases(ctx context.Context, connection database.Database, userId int) (*[]Purchase, error) {
+func LoadPurchases(ctx context.Context, connection database.Database, UserID int) (*[]Purchase, error) {
 	purchase := Purchase{
-		UserId: userId,
+		UserID: UserID,
 		Action: PurchaseOrderAction,
 	}
 
@@ -47,15 +58,33 @@ func LoadPurchases(ctx context.Context, connection database.Database, userId int
 	if err != nil {
 		return nil, err
 	}
-	return database.ScanAll[Purchase](*rows)
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	var values []Purchase
+	for rows.Next() {
+		var value Purchase
+		if err := rows.StructScan(&value); err != nil {
+			return nil, err
+		}
+		values = append(values, value)
+	}
+	return &values, nil
 }
 
 func (p Purchase) Create(ctx context.Context, connection database.Database) error {
-	_, err := connection.Execute(ctx, "order_update.sql", p)
+	rows, err := connection.Execute(ctx, "order_create.sql", p)
+	if err := rows.Err(); err != nil {
+		return err
+	}
 	return err
 }
 
 func (p Purchase) Update(ctx context.Context, connection database.Database) error {
-	_, err := connection.Execute(ctx, "order_update.sql", p)
+	rows, err := connection.Execute(ctx, "order_update.sql", p)
+	if err := rows.Err(); err != nil {
+		return err
+	}
 	return err
 }

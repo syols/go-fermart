@@ -10,9 +10,9 @@ import (
 
 func Balance(connection database.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		userId := context.GetInt("id")
+		UserID := context.GetInt("id")
 
-		purchase, err := models.CalculateBalance(context, connection, userId)
+		purchase, err := models.CalculateBalance(context, connection, UserID)
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return

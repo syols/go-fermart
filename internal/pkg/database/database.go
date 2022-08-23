@@ -21,17 +21,17 @@ const MigrationPath = "file://internal/pkg/database/migrations"
 type RelativePath string
 
 type Database struct {
-	databaseUrl string
+	databaseURL string
 	scripts     map[string]string
 }
 
 func NewConnection(config config.Config) (connection Database, err error) {
 	connection = Database{
-		databaseUrl: config.DatabaseURL,
+		databaseURL: config.DatabaseURL,
 		scripts:     map[string]string{},
 	}
 
-	m, err := migrate.New(MigrationPath, connection.databaseUrl)
+	m, err := migrate.New(MigrationPath, connection.databaseURL)
 	if err != nil {
 		return connection, err
 	}
@@ -42,13 +42,13 @@ func NewConnection(config config.Config) (connection Database, err error) {
 	return
 }
 
-func (d Database) Execute(ctx context.Context, filename string, model any) (*sqlx.Rows, error) {
+func (d Database) Execute(ctx context.Context, filename string, model interface{}) (*sqlx.Rows, error) {
 	script, err := d.script(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	db, err := sqlx.ConnectContext(ctx, "postgres", d.databaseUrl)
+	db, err := sqlx.ConnectContext(ctx, "postgres", d.databaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -75,27 +75,4 @@ func (d Database) script(filename string) (string, error) {
 		d.scripts[filename] = script
 	}
 	return script, nil
-}
-
-func ScanOne[T any](rows sqlx.Rows) (*T, error) {
-	var value T
-	if rows.Next() {
-		if err := rows.StructScan(&value); err != nil {
-			return nil, err
-		}
-		return &value, nil
-	}
-	return nil, nil
-}
-
-func ScanAll[T any](rows sqlx.Rows) (*[]T, error) {
-	var values []T
-	for rows.Next() {
-		var value T
-		if err := rows.StructScan(&value); err != nil {
-			return nil, err
-		}
-		values = append(values, value)
-	}
-	return &values, nil
 }

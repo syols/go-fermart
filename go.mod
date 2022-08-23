@@ -1,8 +1,9 @@
 module github.com/syols/go-devops
 
-go 1.18
+go 1.17
 
 require (
+	github.com/aws/aws-sdk-go v1.17.7
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19
@@ -23,6 +24,7 @@ require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect

@@ -5,7 +5,7 @@ CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users (id),
     number TEXT NOT NULL UNIQUE,
-    score INTEGER,
+    score FLOAT,
     status status NOT NULL,
     action action NOT NULL,
     ctime TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP

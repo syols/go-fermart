@@ -11,7 +11,7 @@ import (
 
 func CreateWithdraw(connection database.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		userId, isOk := context.Get("id")
+		UserID, isOk := context.Get("id")
 		if !isOk {
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
@@ -22,9 +22,9 @@ func CreateWithdraw(connection database.Database) gin.HandlerFunc {
 			context.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
-		withdraw.UserId = userId.(int)
+		withdraw.UserID = UserID.(int)
 
-		balance, err := models.CalculateBalance(context, connection, withdraw.UserId)
+		balance, err := models.CalculateBalance(context, connection, withdraw.UserID)
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return
@@ -39,19 +39,19 @@ func CreateWithdraw(connection database.Database) gin.HandlerFunc {
 			context.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
-		context.Status(http.StatusAccepted)
+		context.Status(http.StatusOK)
 	}
 }
 
 func Withdrawals(connection database.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		userId, isOk := context.Get("id")
+		UserID, isOk := context.Get("id")
 		if !isOk {
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 
-		withdraws, err := models.LoadWithdraw(context, connection, userId.(int))
+		withdraws, err := models.LoadWithdraw(context, connection, UserID.(int))
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return
