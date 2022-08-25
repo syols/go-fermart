@@ -7,9 +7,10 @@ on:
     branches:
       - master
       - main
+      - develop
+      - develop_test
 
 jobs:
-
   statictest:
     runs-on: ubuntu-latest
     container: golang:1.17

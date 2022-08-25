@@ -1,0 +1,8 @@
+# default.yml
+
+address:
+  host: 0.0.0.0
+  port: 8080
+accrual: 0.0.0.0:8088
+database: "postgres://postgres:postgres@localhost/postgres?sslmode=disable"
+sign: "some_sign"
