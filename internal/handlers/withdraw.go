@@ -5,11 +5,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/syols/go-devops/internal/models"
-	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/storage"
 	"github.com/syols/go-devops/internal/pkg/validator"
 )
 
-func CreateWithdraw(connection database.Database) gin.HandlerFunc {
+func CreateWithdraw(connection storage.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		UserID, isOk := context.Get("id")
 		if !isOk {
@@ -43,7 +43,7 @@ func CreateWithdraw(connection database.Database) gin.HandlerFunc {
 	}
 }
 
-func Withdrawals(connection database.Database) gin.HandlerFunc {
+func Withdrawals(connection storage.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		UserID, isOk := context.Get("id")
 		if !isOk {

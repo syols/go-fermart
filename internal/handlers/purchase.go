@@ -6,12 +6,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/syols/go-devops/internal/models"
-	"github.com/syols/go-devops/internal/pkg/database"
 	"github.com/syols/go-devops/internal/pkg/event"
+	"github.com/syols/go-devops/internal/pkg/storage"
 	"github.com/syols/go-devops/internal/pkg/validator"
 )
 
-func CreatePurchase(connection database.Database, sess *event.Session) gin.HandlerFunc {
+func CreatePurchase(connection storage.Database, sess *event.Session) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		bytes, err := ioutil.ReadAll(context.Request.Body)
 		if err != nil {
@@ -19,13 +19,13 @@ func CreatePurchase(connection database.Database, sess *event.Session) gin.Handl
 			return
 		}
 
-		UserID, isOk := context.Get("id")
+		userID, isOk := context.Get("id")
 		if !isOk {
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 
-		purchase := models.NewPurchase(string(bytes), UserID.(int))
+		purchase := models.NewPurchase(string(bytes), userID.(int))
 		if err := validator.Validate(purchase); err != nil {
 			context.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
@@ -52,8 +52,8 @@ func CreatePurchase(connection database.Database, sess *event.Session) gin.Handl
 		}
 
 		if sess != nil {
-			_, err = sess.SendMessage(purchase.Number)
-			if err != nil {
+			if _, err = sess.SendMessage(purchase.Number); err != nil {
+				context.AbortWithStatus(http.StatusInternalServerError)
 				return
 			}
 		}
@@ -61,15 +61,15 @@ func CreatePurchase(connection database.Database, sess *event.Session) gin.Handl
 	}
 }
 
-func Purchases(connection database.Database) gin.HandlerFunc {
+func Purchases(connection storage.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		UserID, isOk := context.Get("id")
+		userID, isOk := context.Get("id")
 		if !isOk {
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 
-		purchases, err := models.LoadPurchases(context, connection, UserID.(int))
+		purchases, err := models.LoadPurchases(context, connection, userID.(int))
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return

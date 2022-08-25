@@ -5,10 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/syols/go-devops/internal/models"
-	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/storage"
 )
 
-func Balance(connection database.Database) gin.HandlerFunc {
+func Balance(connection storage.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		UserID := context.GetInt("id")
 

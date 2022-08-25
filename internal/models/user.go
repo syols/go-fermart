@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
-	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/storage"
 )
 
 type User struct {
@@ -18,7 +18,7 @@ func (user User) Validate() error {
 	return validator.New().Struct(user)
 }
 
-func (user User) Register(ctx context.Context, connection database.Database) error {
+func (user User) Register(ctx context.Context, connection storage.Database) error {
 	rows, err := connection.Execute(ctx, "user_register.sql", user)
 	if err := rows.Err(); err != nil {
 		return err
@@ -26,7 +26,7 @@ func (user User) Register(ctx context.Context, connection database.Database) err
 	return err
 }
 
-func (user User) Login(ctx context.Context, connection database.Database) (*User, error) {
+func (user User) Login(ctx context.Context, connection storage.Database) (*User, error) {
 	rows, err := connection.Execute(ctx, "user_login.sql", user)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (user User) bindUser(rows *sqlx.Rows) (*User, error) {
 	return &value, nil
 }
 
-func (user User) Verify(ctx context.Context, connection database.Database) (*User, error) {
+func (user User) Verify(ctx context.Context, connection storage.Database) (*User, error) {
 	rows, err := connection.Execute(ctx, "user_select.sql", user)
 	if err != nil {
 		return nil, err

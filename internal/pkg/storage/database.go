@@ -1,4 +1,4 @@
-package database
+package storage
 
 import (
 	"context"
@@ -15,8 +15,8 @@ import (
 	"github.com/syols/go-devops/config"
 )
 
-const ScriptPath = "internal/pkg/database/scripts/"
-const MigrationPath = "file://internal/pkg/database/migrations"
+const ScriptPath = "internal/pkg/storage/scripts/"
+const MigrationPath = "file://internal/pkg/storage/migrations"
 
 type RelativePath string
 
@@ -25,7 +25,7 @@ type Database struct {
 	scripts     map[string]string
 }
 
-func NewConnection(config config.Config) (connection Database, err error) {
+func NewDatabaseConnection(config config.Config) (connection Database, err error) {
 	connection = Database{
 		databaseURL: config.DatabaseURL,
 		scripts:     map[string]string{},

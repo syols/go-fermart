@@ -6,24 +6,21 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/syols/go-devops/config"
 	"github.com/syols/go-devops/internal/models"
-	"github.com/syols/go-devops/internal/pkg/database"
 	"github.com/syols/go-devops/internal/pkg/event"
+	"github.com/syols/go-devops/internal/pkg/storage"
 )
 
-func Consume(ctx context.Context, wg *sync.WaitGroup, settings config.Config) error {
-	log.Print("CONSUME")
-	defer wg.Done()
+func Consume(ctx context.Context, settings config.Config) error {
 	sess, err := event.NewSession()
 	if err != nil {
 		return err
 	}
 
-	connection, err := database.NewConnection(settings)
+	connection, err := storage.NewDatabaseConnection(settings)
 	if err != nil {
 		return err
 	}
@@ -56,9 +53,6 @@ func Consume(ctx context.Context, wg *sync.WaitGroup, settings config.Config) er
 				if err := resp.Body.Close(); err != nil {
 					log.Print(err.Error())
 				}
-
-				bodyString := string(bodyBytes)
-				log.Print(bodyString)
 
 				if err := json.Unmarshal(bodyBytes, &value); err != nil {
 					log.Print(err.Error())

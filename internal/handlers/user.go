@@ -6,11 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/syols/go-devops/internal/models"
 	"github.com/syols/go-devops/internal/pkg/authorizer"
-	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/storage"
 	"github.com/syols/go-devops/internal/pkg/validator"
 )
 
-func Register(connection database.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
+func Register(connection storage.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		user, err := bindUser(context)
 		if err != nil {
@@ -34,7 +34,7 @@ func Register(connection database.Database, authorizer authorizer.Authorizer) gi
 	}
 }
 
-func Login(connection database.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
+func Login(connection storage.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		user, err := bindUser(context)
 		if err != nil {

@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 
-	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/storage"
 )
 
 type Purchase struct {
@@ -25,7 +25,7 @@ func NewPurchase(number string, UserID int) Purchase {
 	}
 }
 
-func LoadPurchase(ctx context.Context, connection database.Database, number string) (*Purchase, error) {
+func LoadPurchase(ctx context.Context, connection storage.Database, number string) (*Purchase, error) {
 	purchase := Purchase{
 		Number: number,
 	}
@@ -48,7 +48,7 @@ func LoadPurchase(ctx context.Context, connection database.Database, number stri
 	return nil, nil
 }
 
-func LoadPurchases(ctx context.Context, connection database.Database, UserID int) (*[]Purchase, error) {
+func LoadPurchases(ctx context.Context, connection storage.Database, UserID int) (*[]Purchase, error) {
 	purchase := Purchase{
 		UserID: UserID,
 		Action: PurchaseOrderAction,
@@ -73,7 +73,7 @@ func LoadPurchases(ctx context.Context, connection database.Database, UserID int
 	return &values, nil
 }
 
-func (p Purchase) Create(ctx context.Context, connection database.Database) error {
+func (p Purchase) Create(ctx context.Context, connection storage.Database) error {
 	rows, err := connection.Execute(ctx, "order_create.sql", p)
 	if err := rows.Err(); err != nil {
 		return err
@@ -81,7 +81,7 @@ func (p Purchase) Create(ctx context.Context, connection database.Database) erro
 	return err
 }
 
-func (p Purchase) Update(ctx context.Context, connection database.Database) error {
+func (p Purchase) Update(ctx context.Context, connection storage.Database) error {
 	rows, err := connection.Execute(ctx, "order_update.sql", p)
 	if err := rows.Err(); err != nil {
 		return err

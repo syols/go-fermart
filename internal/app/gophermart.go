@@ -13,8 +13,8 @@ import (
 	"github.com/syols/go-devops/config"
 	"github.com/syols/go-devops/internal/handlers"
 	"github.com/syols/go-devops/internal/pkg/authorizer"
-	"github.com/syols/go-devops/internal/pkg/database"
 	"github.com/syols/go-devops/internal/pkg/event"
+	"github.com/syols/go-devops/internal/pkg/storage"
 )
 
 type Server struct {
@@ -24,7 +24,7 @@ type Server struct {
 
 func NewServer(settings config.Config) (Server, error) {
 	auth := authorizer.NewAuthorizer(settings)
-	db, err := database.NewConnection(settings)
+	db, err := storage.NewDatabaseConnection(settings)
 	if err != nil {
 		return Server{}, err
 	}
@@ -53,7 +53,7 @@ func (s *Server) Run() {
 	}
 }
 
-func router(db database.Database, auth authorizer.Authorizer, sess *event.Session) *gin.Engine {
+func router(db storage.Database, auth authorizer.Authorizer, sess *event.Session) *gin.Engine {
 	router := gin.Default()
 	router.Use(gin.Recovery())
 	router.Use(handlers.LoggerMiddleware())

@@ -5,20 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/storage"
 )
 
 type OrderStatus string
 type OrderAction string
-
 type OrderTime time.Time
 
 const (
-	RegisteredOrderStatus OrderStatus = "REGISTERED"
-	NewOrderStatus        OrderStatus = "NEW"
-	InvalidOrderStatus    OrderStatus = "INVALID"
-	ProcessingOrderStatus OrderStatus = "PROCESSING"
-	ProcessedOrderStatus  OrderStatus = "PROCESSED"
+	NewOrderStatus       OrderStatus = "NEW"
+	ProcessedOrderStatus OrderStatus = "PROCESSED"
 )
 
 const (
@@ -32,7 +28,7 @@ type Order struct {
 	Status OrderStatus `json:"status" db:"status" validate:"oneof=REGISTERED NEW INVALID PROCESSING PROCESSED"`
 }
 
-func (p Order) Update(ctx context.Context, connection database.Database) error {
+func (p Order) Update(ctx context.Context, connection storage.Database) error {
 	rows, err := connection.Execute(ctx, "order_update.sql", p)
 	if err := rows.Err(); err != nil {
 		return err

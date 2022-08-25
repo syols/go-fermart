@@ -14,21 +14,21 @@ import (
 
 func main() {
 	log.SetOutput(os.Stdout)
+
 	cfg, err := config.NewConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Print(cfg)
 
 	var wg sync.WaitGroup
 	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 
-	wg.Add(1)
 	go func() {
-		err := app.Consume(ctx, &wg, cfg)
-		if err != nil {
+		wg.Add(1)
+		if err := app.Consume(ctx, cfg); err != nil {
 			log.Fatal(err)
 		}
+		defer wg.Done()
 	}()
 
 	server, err := app.NewServer(cfg)

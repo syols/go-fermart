@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 
-	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/storage"
 )
 
 type Withdraw struct {
@@ -16,7 +16,7 @@ type Withdraw struct {
 	Action OrderAction `json:"-" db:"action" validate:"oneof=PURCHASE WITHDRAW"`
 }
 
-func (w Withdraw) Create(ctx context.Context, connection database.Database) error {
+func (w Withdraw) Create(ctx context.Context, connection storage.Database) error {
 	rows, err := connection.Execute(ctx, "order_create.sql", w)
 	if err := rows.Err(); err != nil {
 		return err
@@ -24,7 +24,7 @@ func (w Withdraw) Create(ctx context.Context, connection database.Database) erro
 	return err
 }
 
-func LoadWithdraw(ctx context.Context, connection database.Database, UserID int) (*[]Withdraw, error) {
+func LoadWithdraw(ctx context.Context, connection storage.Database, UserID int) (*[]Withdraw, error) {
 	withdraw := Withdraw{
 		UserID: UserID,
 		Status: ProcessedOrderStatus,

@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/syols/go-devops/internal/models"
 	"github.com/syols/go-devops/internal/pkg/authorizer"
-	"github.com/syols/go-devops/internal/pkg/database"
+	"github.com/syols/go-devops/internal/pkg/storage"
 )
 
 func LoggerMiddleware() gin.HandlerFunc {
@@ -41,7 +41,7 @@ func headerConvertString(h http.Header) string {
 	return b.String()
 }
 
-func AuthMiddleware(connection database.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
+func AuthMiddleware(connection storage.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		auth := context.GetHeader("Authorization")
 		if auth == "" {

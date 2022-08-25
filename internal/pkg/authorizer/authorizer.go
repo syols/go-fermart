@@ -33,7 +33,7 @@ func (a Authorizer) CreateToken(user models.User) (string, error) {
 		Username: user.Username,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(a.sign))
+	return token.SignedString(a.sign)
 }
 
 func (a Authorizer) VerifyToken(token string) (string, error) {
