@@ -1,4 +1,4 @@
-package storage
+package pkg
 
 import (
 	"context"
@@ -15,8 +15,8 @@ import (
 	"github.com/syols/go-devops/config"
 )
 
-const ScriptPath = "internal/pkg/storage/scripts/"
-const MigrationPath = "file://internal/pkg/storage/migrations"
+const ScriptPath = "scripts/query/"
+const MigrationPath = "file://scripts/migrations/"
 
 type RelativePath string
 
@@ -42,7 +42,7 @@ func NewDatabaseConnection(config config.Config) (connection Database, err error
 	return
 }
 
-func (d Database) Execute(ctx context.Context, filename string, model interface{}) (*sqlx.Rows, error) {
+func (d *Database) Execute(ctx context.Context, filename string, model interface{}) (*sqlx.Rows, error) {
 	script, err := d.script(filename)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (d Database) Execute(ctx context.Context, filename string, model interface{
 	return db.NamedQuery(script, model)
 }
 
-func (d Database) script(filename string) (string, error) {
+func (d *Database) script(filename string) (string, error) {
 	script, isOk := d.scripts[filename]
 	if !isOk {
 		bytes, err := ioutil.ReadFile(filepath.Join(ScriptPath, filename))

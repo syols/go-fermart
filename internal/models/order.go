@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/syols/go-devops/internal/pkg/storage"
+	"github.com/syols/go-devops/internal/pkg"
 )
 
 type OrderStatus string
@@ -28,7 +28,7 @@ type Order struct {
 	Status OrderStatus `json:"status" db:"status" validate:"oneof=REGISTERED NEW INVALID PROCESSING PROCESSED"`
 }
 
-func (p Order) Update(ctx context.Context, connection storage.Database) error {
+func (p *Order) Update(ctx context.Context, connection pkg.Database) error {
 	rows, err := connection.Execute(ctx, "order_update.sql", p)
 	if err := rows.Err(); err != nil {
 		return err
@@ -36,7 +36,7 @@ func (p Order) Update(ctx context.Context, connection storage.Database) error {
 	return err
 }
 
-func (t OrderTime) MarshalJSON() ([]byte, error) {
-	stamp := fmt.Sprintf("\"%s\"", time.Time(t).Format("2006-01-02T15:04:05.999999-07:00"))
+func (t *OrderTime) MarshalJSON() ([]byte, error) {
+	stamp := fmt.Sprintf("\"%s\"", time.Time(*t).Format("2006-01-02T15:04:05.999999-07:00"))
 	return []byte(stamp), nil
 }

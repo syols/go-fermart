@@ -24,6 +24,10 @@ type Address struct {
 }
 
 func NewConfig() (settings Config, err error) {
+	err = settings.setDefault("develop.yml")
+	if err != nil {
+		return Config{}, err
+	}
 	return settings.set(NewEnvironmentVariables().Options()...), nil
 }
 

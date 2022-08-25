@@ -5,13 +5,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/syols/go-devops/internal/models"
-	"github.com/syols/go-devops/internal/pkg/storage"
-	"github.com/syols/go-devops/internal/pkg/validator"
+	"github.com/syols/go-devops/internal/pkg"
 )
 
-func CreateWithdraw(connection storage.Database) gin.HandlerFunc {
+func CreateWithdraw(connection pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		UserID, isOk := context.Get("id")
+		userID, isOk := context.Get("id")
 		if !isOk {
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
@@ -22,7 +21,7 @@ func CreateWithdraw(connection storage.Database) gin.HandlerFunc {
 			context.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
-		withdraw.UserID = UserID.(int)
+		withdraw.UserID = userID.(int)
 
 		balance, err := models.CalculateBalance(context, connection, withdraw.UserID)
 		if err != nil {
@@ -43,15 +42,15 @@ func CreateWithdraw(connection storage.Database) gin.HandlerFunc {
 	}
 }
 
-func Withdrawals(connection storage.Database) gin.HandlerFunc {
+func Withdrawals(connection pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		UserID, isOk := context.Get("id")
+		userID, isOk := context.Get("id")
 		if !isOk {
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 
-		withdraws, err := models.LoadWithdraw(context, connection, UserID.(int))
+		withdraws, err := models.LoadWithdraw(context, connection, userID.(int))
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return
@@ -72,7 +71,7 @@ func bindWithdraw(context *gin.Context) (*models.Withdraw, error) {
 
 	withdraw.Status = models.ProcessedOrderStatus
 	withdraw.Action = models.WithdrawOrderAction
-	if err := validator.Validate(withdraw); err != nil {
+	if err := pkg.Validate(withdraw); err != nil {
 		return nil, err
 	}
 	return &withdraw, nil

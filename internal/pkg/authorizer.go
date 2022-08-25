@@ -1,4 +1,4 @@
-package authorizer
+package pkg
 
 import (
 	"time"
@@ -6,7 +6,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/docker/distribution/registry/auth"
 	"github.com/syols/go-devops/config"
-	"github.com/syols/go-devops/internal/models"
 )
 
 type UserClaims struct {
@@ -24,19 +23,19 @@ func NewAuthorizer(config config.Config) Authorizer {
 	}
 }
 
-func (a Authorizer) CreateToken(user models.User) (string, error) {
+func (a *Authorizer) CreateToken(username string) (string, error) {
 	claims := UserClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().UTC().Add(time.Hour).Unix(),
-			Issuer:    user.Username,
+			Issuer:    username,
 		},
-		Username: user.Username,
+		Username: username,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(a.sign)
 }
 
-func (a Authorizer) VerifyToken(token string) (string, error) {
+func (a *Authorizer) VerifyToken(token string) (string, error) {
 	var claims UserClaims
 	_, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

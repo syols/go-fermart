@@ -6,12 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/syols/go-devops/internal/models"
-	"github.com/syols/go-devops/internal/pkg/event"
-	"github.com/syols/go-devops/internal/pkg/storage"
-	"github.com/syols/go-devops/internal/pkg/validator"
+	"github.com/syols/go-devops/internal/pkg"
 )
 
-func CreatePurchase(connection storage.Database, sess *event.Session) gin.HandlerFunc {
+func CreatePurchase(connection pkg.Database, sess *pkg.Session) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		bytes, err := ioutil.ReadAll(context.Request.Body)
 		if err != nil {
@@ -26,7 +24,7 @@ func CreatePurchase(connection storage.Database, sess *event.Session) gin.Handle
 		}
 
 		purchase := models.NewPurchase(string(bytes), userID.(int))
-		if err := validator.Validate(purchase); err != nil {
+		if err := pkg.Validate(purchase); err != nil {
 			context.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
@@ -61,7 +59,7 @@ func CreatePurchase(connection storage.Database, sess *event.Session) gin.Handle
 	}
 }
 
-func Purchases(connection storage.Database) gin.HandlerFunc {
+func Purchases(connection pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userID, isOk := context.Get("id")
 		if !isOk {

@@ -8,6 +8,7 @@ on:
       - master
       - main
       - develop
+      - develop_test
 
 jobs:
   statictest:

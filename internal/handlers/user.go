@@ -5,12 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/syols/go-devops/internal/models"
-	"github.com/syols/go-devops/internal/pkg/authorizer"
-	"github.com/syols/go-devops/internal/pkg/storage"
-	"github.com/syols/go-devops/internal/pkg/validator"
+	"github.com/syols/go-devops/internal/pkg"
 )
 
-func Register(connection storage.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
+func Register(connection pkg.Database, authorizer pkg.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		user, err := bindUser(context)
 		if err != nil {
@@ -23,7 +21,7 @@ func Register(connection storage.Database, authorizer authorizer.Authorizer) gin
 			return
 		}
 
-		token, err := authorizer.CreateToken(*user)
+		token, err := authorizer.CreateToken(user.Username)
 		if err != nil {
 			context.AbortWithStatus(http.StatusConflict)
 			return
@@ -34,7 +32,7 @@ func Register(connection storage.Database, authorizer authorizer.Authorizer) gin
 	}
 }
 
-func Login(connection storage.Database, authorizer authorizer.Authorizer) gin.HandlerFunc {
+func Login(connection pkg.Database, authorizer pkg.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		user, err := bindUser(context)
 		if err != nil {
@@ -48,7 +46,7 @@ func Login(connection storage.Database, authorizer authorizer.Authorizer) gin.Ha
 			return
 		}
 
-		token, err := authorizer.CreateToken(*dbUser)
+		token, err := authorizer.CreateToken(dbUser.Username)
 		if err != nil {
 			context.AbortWithStatus(http.StatusUnauthorized)
 			return
@@ -63,7 +61,7 @@ func bindUser(context *gin.Context) (*models.User, error) {
 	if err := context.BindJSON(&user); err != nil {
 		return nil, err
 	}
-	if err := validator.Validate(user); err != nil {
+	if err := pkg.Validate(user); err != nil {
 		return nil, err
 	}
 	return &user, nil

@@ -5,14 +5,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/syols/go-devops/internal/models"
-	"github.com/syols/go-devops/internal/pkg/storage"
+	"github.com/syols/go-devops/internal/pkg"
 )
 
-func Balance(connection storage.Database) gin.HandlerFunc {
+func Balance(connection pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		UserID := context.GetInt("id")
+		userID := context.GetInt("id")
 
-		purchase, err := models.CalculateBalance(context, connection, UserID)
+		purchase, err := models.CalculateBalance(context, connection, userID)
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return

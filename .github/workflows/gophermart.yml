@@ -11,7 +11,6 @@ on:
       - develop_test
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     container: golang:1.17
@@ -22,8 +21,6 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: praktikum
-          AWS_ACCESS_KEY_ID: AKIA52TFFBZFP3TOQRG2
-          AWS_SECRET_ACCESS_KEY: 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
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
@@ -54,6 +51,10 @@ jobs:
           (cd cmd/accrual && chmod +x accrual_linux_amd64)
 
       - name: Test
+        env:
+          AWS_ACCESS_KEY_ID: AKIA52TFFBZFP3TOQRG2
+          AWS_SECRET_ACCESS_KEY: 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
+          AWS_SESSION_TOKEN: ""
         run: |
           gophermarttest \
             -test.v -test.run=^TestGophermart$ \

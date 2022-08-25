@@ -1,4 +1,4 @@
-package event
+package pkg
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -20,7 +20,7 @@ type Session struct {
 func NewSession() (*Session, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials("AKIA52TFFBZFP3TOQRG2", "QB2JzDizt62e1NQR+Qvc77D4fUH3M1cx9ofmnIK3", ""),
+		Credentials: credentials.NewEnvCredentials(),
 	})
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func NewSession() (*Session, error) {
 	}, err
 }
 
-func (s Session) SendMessage(message string) (*sqs.SendMessageOutput, error) {
+func (s *Session) SendMessage(message string) (*sqs.SendMessageOutput, error) {
 	return s.svc.SendMessage(&sqs.SendMessageInput{
 		DelaySeconds: aws.Int64(DelaySeconds),
 		MessageBody:  aws.String(message),
@@ -53,7 +53,7 @@ func (s Session) SendMessage(message string) (*sqs.SendMessageOutput, error) {
 	})
 }
 
-func (s Session) ReceiveMessages() (result []*sqs.Message, err error) {
+func (s *Session) ReceiveMessages() (result []*sqs.Message, err error) {
 	output, err := s.svc.ReceiveMessage(&sqs.ReceiveMessageInput{
 		QueueUrl:            s.QueueURL,
 		MaxNumberOfMessages: aws.Int64(MaxNumberOfMessages),
@@ -65,7 +65,7 @@ func (s Session) ReceiveMessages() (result []*sqs.Message, err error) {
 	return append(result, output.Messages...), nil
 }
 
-func (s Session) DeleteMessage(message *sqs.Message) error {
+func (s *Session) DeleteMessage(message *sqs.Message) error {
 	_, err := s.svc.DeleteMessage(&sqs.DeleteMessageInput{
 		QueueUrl:      s.QueueURL,
 		ReceiptHandle: message.ReceiptHandle,

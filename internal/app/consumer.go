@@ -4,25 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/syols/go-devops/config"
 	"github.com/syols/go-devops/internal/models"
-	"github.com/syols/go-devops/internal/pkg/event"
-	"github.com/syols/go-devops/internal/pkg/storage"
+	"github.com/syols/go-devops/internal/pkg"
 )
 
-func Consume(ctx context.Context, settings config.Config) error {
-	sess, err := event.NewSession()
+func Consume(ctx context.Context, settings config.Config, errs chan error) {
+	sess, err := pkg.NewSession()
 	if err != nil {
-		return err
+		errs <- err
+		close(errs)
+		return
 	}
 
-	connection, err := storage.NewDatabaseConnection(settings)
+	connection, err := pkg.NewDatabaseConnection(settings)
 	if err != nil {
-		return err
+		errs <- err
+		close(errs)
+		return
 	}
 
 	pollInterval := time.NewTicker(time.Second)
@@ -31,7 +33,7 @@ func Consume(ctx context.Context, settings config.Config) error {
 		case <-pollInterval.C:
 			messages, err := sess.ReceiveMessages()
 			if err != nil {
-				log.Print(err.Error())
+				errs <- err
 				continue
 			}
 
@@ -39,39 +41,39 @@ func Consume(ctx context.Context, settings config.Config) error {
 				url := settings.AccrualAddress + "/api/orders/" + *msg.Body
 				resp, err := http.Get(url)
 				if err != nil {
-					log.Print(err.Error())
+					errs <- err
 					continue
 				}
 
 				value := models.Order{}
 				bodyBytes, err := ioutil.ReadAll(resp.Body)
 				if err != nil {
-					log.Print(err.Error())
+					errs <- err
 					continue
 				}
 
 				if err := resp.Body.Close(); err != nil {
-					log.Print(err.Error())
+					errs <- err
 				}
 
 				if err := json.Unmarshal(bodyBytes, &value); err != nil {
-					log.Print(err.Error())
+					errs <- err
 					continue
 				}
 
 				if value.Status == models.ProcessedOrderStatus {
 					if err := sess.DeleteMessage(msg); err != nil {
-						log.Print(err.Error())
+						errs <- err
 					}
 				}
 
 				if err = value.Update(ctx, connection); err != nil {
-					log.Print(err.Error())
-					continue
+					errs <- err
 				}
 			}
 		case <-ctx.Done():
-			return nil
+			close(errs)
+			return
 		}
 	}
 }

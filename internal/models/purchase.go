@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 
-	"github.com/syols/go-devops/internal/pkg/storage"
+	"github.com/syols/go-devops/internal/pkg"
 )
 
 type Purchase struct {
@@ -16,16 +16,32 @@ type Purchase struct {
 	Action OrderAction `json:"-" db:"action" validate:"oneof=PURCHASE"`
 }
 
-func NewPurchase(number string, UserID int) Purchase {
+func NewPurchase(number string, userID int) Purchase {
 	return Purchase{
 		Number: number,
-		UserID: UserID,
+		UserID: userID,
 		Status: NewOrderStatus,
 		Action: PurchaseOrderAction,
 	}
 }
 
-func LoadPurchase(ctx context.Context, connection storage.Database, number string) (*Purchase, error) {
+func (p *Purchase) Create(ctx context.Context, connection pkg.Database) error {
+	rows, err := connection.Execute(ctx, "order_create.sql", p)
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return err
+}
+
+func (p *Purchase) Update(ctx context.Context, connection pkg.Database) error {
+	rows, err := connection.Execute(ctx, "order_update.sql", p)
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return err
+}
+
+func LoadPurchase(ctx context.Context, connection pkg.Database, number string) (*Purchase, error) {
 	purchase := Purchase{
 		Number: number,
 	}
@@ -48,9 +64,9 @@ func LoadPurchase(ctx context.Context, connection storage.Database, number strin
 	return nil, nil
 }
 
-func LoadPurchases(ctx context.Context, connection storage.Database, UserID int) (*[]Purchase, error) {
+func LoadPurchases(ctx context.Context, connection pkg.Database, userID int) (*[]Purchase, error) {
 	purchase := Purchase{
-		UserID: UserID,
+		UserID: userID,
 		Action: PurchaseOrderAction,
 	}
 
@@ -71,20 +87,4 @@ func LoadPurchases(ctx context.Context, connection storage.Database, UserID int)
 		values = append(values, value)
 	}
 	return &values, nil
-}
-
-func (p Purchase) Create(ctx context.Context, connection storage.Database) error {
-	rows, err := connection.Execute(ctx, "order_create.sql", p)
-	if err := rows.Err(); err != nil {
-		return err
-	}
-	return err
-}
-
-func (p Purchase) Update(ctx context.Context, connection storage.Database) error {
-	rows, err := connection.Execute(ctx, "order_update.sql", p)
-	if err := rows.Err(); err != nil {
-		return err
-	}
-	return err
 }

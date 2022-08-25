@@ -14,28 +14,25 @@ import (
 
 func main() {
 	log.SetOutput(os.Stdout)
-
+	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	cfg, err := config.NewConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var wg sync.WaitGroup
-	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		wg.Add(1)
-		if err := app.Consume(ctx, cfg); err != nil {
-			log.Fatal(err)
-		}
-		defer wg.Done()
-	}()
+	errs := make(chan error, 1)
+	wg.Add(1)
+	go app.Consume(ctx, cfg, errs)
 
 	server, err := app.NewServer(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	server.Run()
 	wg.Wait()
+	
+	for err := range errs { // TODO
+		log.Print(err)
+	}
 }

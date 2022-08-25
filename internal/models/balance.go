@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 
-	"github.com/syols/go-devops/internal/pkg/storage"
+	"github.com/syols/go-devops/internal/pkg"
 )
 
 type Balance struct {
@@ -12,9 +12,9 @@ type Balance struct {
 	Withdrawn float32 `json:"withdrawn" db:"withdrawn"`
 }
 
-func CalculateBalance(ctx context.Context, connection storage.Database, UserID int) (*Balance, error) {
+func CalculateBalance(ctx context.Context, connection pkg.Database, userID int) (*Balance, error) {
 	request := Balance{
-		UserID: UserID,
+		UserID: userID,
 	}
 
 	rows, err := connection.Execute(ctx, "user_balance.sql", request)
