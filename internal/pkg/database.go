@@ -20,24 +20,35 @@ const MigrationPath = "file://scripts/migrations/"
 
 type RelativePath string
 
-type Database struct {
-	databaseURL string
-	scripts     map[string]string
+type DatabaseConnectionCreator interface {
+	create(ctx context.Context) (*sqlx.DB, error)
 }
 
-func NewDatabaseConnection(config config.Config) (connection Database, err error) {
-	connection = Database{
+type SqlConnection struct {
+	databaseURL string
+}
+
+type Database struct {
+	scripts    map[string]string
+	connection DatabaseConnectionCreator
+}
+
+func NewDatabase(config config.Config) (db Database, err error) {
+	var conn DatabaseConnectionCreator = SqlConnection{
 		databaseURL: config.DatabaseURL,
+	}
+	db = Database{
 		scripts:     map[string]string{},
+		connection: conn,
 	}
 
-	m, err := migrate.New(MigrationPath, connection.databaseURL)
+	m, err := migrate.New(MigrationPath, config.DatabaseURL)
 	if err != nil {
-		return connection, err
+		return db, err
 	}
 
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return connection, err
+		return db, err
 	}
 	return
 }
@@ -48,7 +59,7 @@ func (d *Database) Execute(ctx context.Context, filename string, model interface
 		return nil, err
 	}
 
-	db, err := sqlx.ConnectContext(ctx, "postgres", d.databaseURL)
+	db, err := d.connection.create(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +72,10 @@ func (d *Database) Execute(ctx context.Context, filename string, model interface
 	}(db)
 
 	return db.NamedQuery(script, model)
+}
+
+func (c SqlConnection) create(ctx context.Context) (*sqlx.DB, error) {
+	return sqlx.ConnectContext(ctx, "postgres", c.databaseURL)
 }
 
 func (d *Database) script(filename string) (string, error) {

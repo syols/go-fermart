@@ -22,7 +22,7 @@ type Server struct {
 
 func NewServer(settings config.Config) (Server, error) {
 	auth := pkg.NewAuthorizer(settings)
-	db, err := pkg.NewDatabaseConnection(settings)
+	db, err := pkg.NewDatabase(settings)
 	if err != nil {
 		return Server{}, err
 	}
