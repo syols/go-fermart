@@ -25,28 +25,28 @@ func NewPurchase(number string, userID int) Purchase {
 	}
 }
 
-func (p *Purchase) Create(ctx context.Context, connection pkg.Database) error {
-	rows, err := connection.Execute(ctx, "order_create.sql", p)
+func (p *Purchase) Create(ctx context.Context, db pkg.Database) error {
+	rows, err := db.Execute(ctx, "order_create.sql", p)
 	if err := rows.Err(); err != nil {
 		return err
 	}
 	return err
 }
 
-func (p *Purchase) Update(ctx context.Context, connection pkg.Database) error {
-	rows, err := connection.Execute(ctx, "order_update.sql", p)
+func (p *Purchase) Update(ctx context.Context, db pkg.Database) error {
+	rows, err := db.Execute(ctx, "order_update.sql", p)
 	if err := rows.Err(); err != nil {
 		return err
 	}
 	return err
 }
 
-func LoadPurchase(ctx context.Context, connection pkg.Database, number string) (*Purchase, error) {
+func LoadPurchase(ctx context.Context, db pkg.Database, number string) (*Purchase, error) {
 	purchase := Purchase{
 		Number: number,
 	}
 
-	rows, err := connection.Execute(ctx, "order_select.sql", purchase)
+	rows, err := db.Execute(ctx, "order_select.sql", purchase)
 	if err != nil {
 		return nil, err
 	}
@@ -64,13 +64,13 @@ func LoadPurchase(ctx context.Context, connection pkg.Database, number string) (
 	return nil, nil
 }
 
-func LoadPurchases(ctx context.Context, connection pkg.Database, userID int) (*[]Purchase, error) {
+func LoadPurchases(ctx context.Context, db pkg.Database, userID int) (*[]Purchase, error) {
 	purchase := Purchase{
 		UserID: userID,
 		Action: PurchaseOrderAction,
 	}
 
-	rows, err := connection.Execute(ctx, "user_orders.sql", purchase)
+	rows, err := db.Execute(ctx, "user_orders.sql", purchase)
 	if err != nil {
 		return nil, err
 	}

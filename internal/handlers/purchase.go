@@ -9,7 +9,7 @@ import (
 	"github.com/syols/go-devops/internal/pkg"
 )
 
-func CreatePurchase(connection pkg.Database, sess *pkg.Session) gin.HandlerFunc {
+func CreatePurchase(db pkg.Database, sess *pkg.Session) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		bytes, err := ioutil.ReadAll(context.Request.Body)
 		if err != nil {
@@ -29,7 +29,7 @@ func CreatePurchase(connection pkg.Database, sess *pkg.Session) gin.HandlerFunc 
 			return
 		}
 
-		dbPurchase, err := models.LoadPurchase(context, connection, purchase.Number)
+		dbPurchase, err := models.LoadPurchase(context, db, purchase.Number)
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return
@@ -44,7 +44,7 @@ func CreatePurchase(connection pkg.Database, sess *pkg.Session) gin.HandlerFunc 
 			return
 		}
 
-		if err := purchase.Create(context, connection); err != nil {
+		if err := purchase.Create(context, db); err != nil {
 			context.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
@@ -59,7 +59,7 @@ func CreatePurchase(connection pkg.Database, sess *pkg.Session) gin.HandlerFunc 
 	}
 }
 
-func Purchases(connection pkg.Database) gin.HandlerFunc {
+func Purchases(db pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userID, isOk := context.Get("id")
 		if !isOk {
@@ -67,7 +67,7 @@ func Purchases(connection pkg.Database) gin.HandlerFunc {
 			return
 		}
 
-		purchases, err := models.LoadPurchases(context, connection, userID.(int))
+		purchases, err := models.LoadPurchases(context, db, userID.(int))
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return

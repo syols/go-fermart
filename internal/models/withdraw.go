@@ -16,22 +16,22 @@ type Withdraw struct {
 	Action OrderAction `json:"-" db:"action" validate:"oneof=PURCHASE WITHDRAW"`
 }
 
-func (w *Withdraw) Create(ctx context.Context, connection pkg.Database) error {
-	rows, err := connection.Execute(ctx, "order_create.sql", w)
+func (w *Withdraw) Create(ctx context.Context, db pkg.Database) error {
+	rows, err := db.Execute(ctx, "order_create.sql", w)
 	if err := rows.Err(); err != nil {
 		return err
 	}
 	return err
 }
 
-func LoadWithdraw(ctx context.Context, connection pkg.Database, userID int) (*[]Withdraw, error) {
+func LoadWithdraw(ctx context.Context, db pkg.Database, userID int) (*[]Withdraw, error) {
 	withdraw := Withdraw{
 		UserID: userID,
 		Status: ProcessedOrderStatus,
 		Action: WithdrawOrderAction,
 	}
 
-	rows, err := connection.Execute(ctx, "user_orders.sql", withdraw)
+	rows, err := db.Execute(ctx, "user_orders.sql", withdraw)
 	if err != nil {
 		return nil, err
 	}

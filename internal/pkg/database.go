@@ -12,37 +12,25 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/syols/go-devops/config"
 )
 
-const ScriptPath = "scripts/query/"
-const MigrationPath = "file://scripts/migrations/"
+const ScriptPath = "Scripts/query/"
+const MigrationPath = "file://Scripts/migrations/"
 
 type RelativePath string
 
-type DatabaseConnectionCreator interface {
-	create(ctx context.Context) (*sqlx.DB, error)
-}
-
-type SqlConnection struct {
-	databaseURL string
-}
-
 type Database struct {
-	scripts    map[string]string
+	Scripts    map[string]string
 	connection DatabaseConnectionCreator
 }
 
-func NewDatabase(config config.Config) (db Database, err error) {
-	var conn DatabaseConnectionCreator = SqlConnection{
-		databaseURL: config.DatabaseURL,
-	}
+func NewDatabase(connectionCreator DatabaseConnectionCreator) (db Database, err error) {
 	db = Database{
-		scripts:     map[string]string{},
-		connection: conn,
+		Scripts:    map[string]string{},
+		connection: connectionCreator,
 	}
 
-	m, err := migrate.New(MigrationPath, config.DatabaseURL)
+	m, err := migrate.New(MigrationPath, connectionCreator.Url())
 	if err != nil {
 		return db, err
 	}
@@ -59,7 +47,7 @@ func (d *Database) Execute(ctx context.Context, filename string, model interface
 		return nil, err
 	}
 
-	db, err := d.connection.create(ctx)
+	db, err := d.connection.Create(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -74,12 +62,8 @@ func (d *Database) Execute(ctx context.Context, filename string, model interface
 	return db.NamedQuery(script, model)
 }
 
-func (c SqlConnection) create(ctx context.Context) (*sqlx.DB, error) {
-	return sqlx.ConnectContext(ctx, "postgres", c.databaseURL)
-}
-
 func (d *Database) script(filename string) (string, error) {
-	script, isOk := d.scripts[filename]
+	script, isOk := d.Scripts[filename]
 	if !isOk {
 		bytes, err := ioutil.ReadFile(filepath.Join(ScriptPath, filename))
 		if err != nil {
@@ -87,7 +71,7 @@ func (d *Database) script(filename string) (string, error) {
 		}
 
 		script = string(bytes)
-		d.scripts[filename] = script
+		d.Scripts[filename] = script
 	}
 	return script, nil
 }

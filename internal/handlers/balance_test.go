@@ -1,41 +1,56 @@
 package handlers
 
 import (
-	"context"
-	"database/sql"
-	"github.com/jmoiron/sqlx"
-	"github.com/stretchr/testify/assert"
+	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/syols/go-devops/internal/models"
 	"github.com/syols/go-devops/internal/pkg"
 )
 
-type MockConnection struct {
-	db *sql.DB
+func database() (*pkg.Database, error) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		return nil, err
+	}
+	query := "SELECT orders.user_id, " +
+		"SUM(CASE action WHEN 'PURCHASE' THEN score ELSE 0 END) - " +
+		"SUM(CASE action WHEN 'WITHDRAW' THEN score ELSE 0 END) " +
+		"AS current, SUM(CASE action WHEN 'WITHDRAW' " +
+		"THEN score ELSE 0 END) AS withdrawn FROM orders WHERE user_id = 1 AND status = 'PROCESSED' GROUP BY user_id;"
+	mock.ExpectQuery(query).
+		WithArgs("login", "password").WillReturnRows(sqlmock.NewRows([]string{"user_id", "current", "withdrawn"}).
+		AddRow(0, 1, 2))
+	conn := pkg.NewSqlConnection(mockDb, "sqlmock")
+	db, err := pkg.NewDatabase(conn)
+	db.Scripts["user_balance.sql"] = query
+	return &db, err
 }
 
-
-func (c MockConnection) create(_ context.Context) (*sqlx.DB, error) {
-	dbx := sqlx.NewDb(c.db, "sqlmock")
-	return dbx, nil
+func router(database pkg.Database) *gin.Engine {
+	route := gin.Default()
+	route.GET("/balance", Balance(database))
+	return route
 }
 
-
-func handlers(t *testing.T) http.Handler {
-	db, mock, err := sqlmock.New()
+func TestBalanceHandler(t *testing.T) {
+	database, err := database()
 	assert.NoError(t, err)
 
-	mock.ExpectExec("INSERT INTO users").
-		WithArgs("john", AnyTime{}).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+	router := router(*database)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/balance", nil)
+	router.ServeHTTP(w, req)
 
-	r := http.NewServeMux()
-	db = pkg.Database{}
-	r.HandleFunc("/balance", Balance(db))
-	return r
-}
+	var first, second models.Balance
+	assert.NoError(t, json.Unmarshal([]byte("{\"current\": 1, \"withdrawn\": 2}"), &first))
+	assert.NoError(t, json.Unmarshal([]byte(w.Body.String()), &second))
 
-func BalanceHandlerTest() {
-
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, first, second)
 }
