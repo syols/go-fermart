@@ -1,16 +1,17 @@
 package handlers
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
 	"bou.ke/monkey"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/syols/go-devops/config"
 	"github.com/syols/go-devops/internal/pkg"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"time"
 )
 
 const Header = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk0NjY5MjA2MSwiaXNz" +
@@ -25,7 +26,7 @@ func authDatabase() (*pkg.Database, error) {
 	mock.ExpectQuery(SelectQuery).WillReturnRows(sqlmock.NewRows([]string{"id", "login", "password"}).
 		AddRow(0, "username", "password"))
 
-	db, err := pkg.NewDatabase(pkg.NewSqlConnection(mockDb, "sqlmock"))
+	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDb, "sqlmock"))
 	if err != nil {
 		return nil, err
 	}

@@ -22,7 +22,7 @@ func balanceDatabase() (*pkg.Database, error) {
 	}
 
 	mock.ExpectQuery(SelectQuery).WillReturnRows(sqlmock.NewRows([]string{"user_id", "current", "withdrawn"}).AddRow(0, 1, 2))
-	db, err := pkg.NewDatabase(pkg.NewSqlConnection(mockDb, "sqlmock"))
+	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDb, "sqlmock"))
 	if err != nil {
 		return nil, err
 	}

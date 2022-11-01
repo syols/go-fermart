@@ -1,12 +1,13 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/syols/go-devops/internal/pkg"
@@ -20,7 +21,7 @@ func purchasesDatabase() (*pkg.Database, error) {
 
 	mock.ExpectQuery(SelectQuery).WillReturnRows(sqlmock.NewRows([]string{"user_id", "number", "score", "status", "ctime"}).AddRow(0, 1, 2, "NEW", time.Now()))
 	mock.ExpectQuery(InsertQuery).WillReturnRows(sqlmock.NewRows([]string{"user_id", "number", "score", "status", "action"}))
-	db, err := pkg.NewDatabase(pkg.NewSqlConnection(mockDb, "sqlmock"))
+	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDb, "sqlmock"))
 	if err != nil {
 		return nil, err
 	}

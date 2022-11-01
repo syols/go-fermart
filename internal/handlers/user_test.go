@@ -1,13 +1,14 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
-	"github.com/syols/go-devops/config"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/syols/go-devops/config"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/syols/go-devops/internal/pkg"
@@ -19,7 +20,7 @@ func userRegisterDatabase() (*pkg.Database, error) {
 		return nil, err
 	}
 	mock.ExpectQuery(InsertQuery).WillReturnRows(sqlmock.NewRows([]string{"login", "password"}))
-	db, err := pkg.NewDatabase(pkg.NewSqlConnection(mockDb, "sqlmock"))
+	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDb, "sqlmock"))
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +34,7 @@ func userLoginDatabase() (*pkg.Database, error) {
 		return nil, err
 	}
 	mock.ExpectQuery(SelectQuery).WillReturnRows(sqlmock.NewRows([]string{"id", "login", "password"}).AddRow(0, "login", "password"))
-	db, err := pkg.NewDatabase(pkg.NewSqlConnection(mockDb, "sqlmock"))
+	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDb, "sqlmock"))
 	if err != nil {
 		return nil, err
 	}
