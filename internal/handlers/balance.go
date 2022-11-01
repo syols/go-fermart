@@ -8,6 +8,15 @@ import (
 	"github.com/syols/go-devops/internal/pkg"
 )
 
+// Balance godoc
+// @Tags Info
+// @Summary Запрос баланса
+// @ID userID
+// @Accept  json
+// @Produce json
+// @Success 200 {object} Balance
+// @Failure 500 {string} string "StatusInternalServerError"
+// @Router /api/user/balance [get]
 func Balance(db pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userID := context.GetInt("id")

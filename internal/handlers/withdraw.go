@@ -8,6 +8,14 @@ import (
 	"github.com/syols/go-devops/internal/pkg"
 )
 
+// CreateWithdraw godoc
+// @Summary Списать баллы
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "StatusBadRequest"
+// @Failure 402 {string} string "StatusPaymentRequired"
+// @Failure 422 {string} string "StatusUnprocessableEntity"
+// @Success 500 {string} string "StatusInternalServerError"
+// @Router /balance/withdraw [get]
 func CreateWithdraw(db pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userID, isOk := context.Get("id")
@@ -42,6 +50,13 @@ func CreateWithdraw(db pkg.Database) gin.HandlerFunc {
 	}
 }
 
+// Withdrawals godoc
+// @Summary История списаний
+// @Success 200 {object} Withdraws
+// @Success 201 {string} string "StatusNoContent"
+// @Failure 400 {string} string "StatusBadRequest"
+// @Success 500 {string} string "StatusInternalServerError"
+// @Router /balance/withdraw [get]
 func Withdrawals(db pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userID, isOk := context.Get("id")

@@ -9,6 +9,16 @@ import (
 	"github.com/syols/go-devops/internal/pkg"
 )
 
+// CreatePurchase godoc
+// @Summary Создание заказа
+// @ID userID
+// @Status: NewOrderStatus,
+// @Action: PurchaseOrderAction,
+// @Success 200 {string} string "OK"
+// @Success 201 {string} string "StatusInternalServerError"
+// @Success 409 {string} string "StatusUnprocessableEntity"
+// @Failure 500 {string} string "StatusInternalServerError"
+// @Router /orders [post]
 func CreatePurchase(db pkg.Database, sess *pkg.Session) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		bytes, err := ioutil.ReadAll(context.Request.Body)
@@ -59,6 +69,17 @@ func CreatePurchase(db pkg.Database, sess *pkg.Session) gin.HandlerFunc {
 	}
 }
 
+// Purchases godoc
+// @Summary Список заказов
+// @ID userID
+// @Status: NewOrderStatus,
+// @Action: PurchaseOrderAction,
+// @Success 200 {objects} Purchase
+// @Success 204 {string} string "StatusNoContent"
+// @Success 400 {string} string "StatusBadRequest"
+// @Success 409 {string} string "StatusUnprocessableEntity"
+// @Failure 500 {string} string "StatusInternalServerError"
+// @Router /orders [get]
 func Purchases(db pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userID, isOk := context.Get("id")

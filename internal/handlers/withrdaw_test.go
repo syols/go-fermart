@@ -63,3 +63,7 @@ func TestWithdrawHandler(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
 }
+
+func ExampleWithdraw() {
+
+}

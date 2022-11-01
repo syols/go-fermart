@@ -52,3 +52,7 @@ func TestBalanceHandler(t *testing.T) {
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, first, second)
 }
+
+func ExampleBalance() {
+
+}
