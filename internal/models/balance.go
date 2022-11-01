@@ -12,12 +12,12 @@ type Balance struct {
 	Withdrawn float32 `json:"withdrawn" db:"withdrawn"`
 }
 
-func CalculateBalance(ctx context.Context, connection pkg.Database, userID int) (*Balance, error) {
+func CalculateBalance(ctx context.Context, db pkg.Database, userID int) (*Balance, error) {
 	request := Balance{
 		UserID: userID,
 	}
 
-	rows, err := connection.Execute(ctx, "user_balance.sql", request)
+	rows, err := db.Execute(ctx, "user_balance.sql", request)
 	if err != nil {
 		return nil, err
 	}

@@ -40,7 +40,7 @@ func headerConvertString(h http.Header) string {
 	return b.String()
 }
 
-func AuthMiddleware(connection pkg.Database, authorizer pkg.Authorizer) gin.HandlerFunc {
+func AuthMiddleware(db pkg.Database, authorizer pkg.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		auth := context.GetHeader("Authorization")
 		if auth == "" {
@@ -63,7 +63,7 @@ func AuthMiddleware(connection pkg.Database, authorizer pkg.Authorizer) gin.Hand
 		}
 
 		user := models.User{Username: username}
-		dbUser, err := user.Verify(context, connection)
+		dbUser, err := user.Verify(context, db)
 		if err != nil || user.Username != dbUser.Username {
 			context.AbortWithStatus(http.StatusUnauthorized)
 			return

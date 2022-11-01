@@ -8,11 +8,11 @@ import (
 	"github.com/syols/go-devops/internal/pkg"
 )
 
-func Balance(connection pkg.Database) gin.HandlerFunc {
+func Balance(db pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userID := context.GetInt("id")
 
-		purchase, err := models.CalculateBalance(context, connection, userID)
+		purchase, err := models.CalculateBalance(context, db, userID)
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return

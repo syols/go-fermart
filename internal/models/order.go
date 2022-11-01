@@ -28,8 +28,8 @@ type Order struct {
 	Status OrderStatus `json:"status" db:"status" validate:"oneof=REGISTERED NEW INVALID PROCESSING PROCESSED"`
 }
 
-func (p *Order) Update(ctx context.Context, connection pkg.Database) error {
-	rows, err := connection.Execute(ctx, "order_update.sql", p)
+func (p *Order) Update(ctx context.Context, db pkg.Database) error {
+	rows, err := db.Execute(ctx, "order_update.sql", p)
 	if err := rows.Err(); err != nil {
 		return err
 	}
