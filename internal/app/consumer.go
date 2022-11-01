@@ -20,7 +20,8 @@ func Consume(ctx context.Context, settings config.Config, errs chan error) {
 		return
 	}
 
-	connection, err := pkg.NewDatabaseConnection(settings)
+	conn := pkg.NewDatabaseURLConnection(settings)
+	db, err := pkg.NewDatabase(conn)
 	if err != nil {
 		errs <- err
 		close(errs)
@@ -67,7 +68,7 @@ func Consume(ctx context.Context, settings config.Config, errs chan error) {
 					}
 				}
 
-				if err = value.Update(ctx, connection); err != nil {
+				if err = value.Update(ctx, db); err != nil {
 					errs <- err
 				}
 			}

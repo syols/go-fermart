@@ -8,7 +8,15 @@ import (
 	"github.com/syols/go-devops/internal/pkg"
 )
 
-func Register(connection pkg.Database, authorizer pkg.Authorizer) gin.HandlerFunc {
+// Register godoc
+// @Summary Регистрация пользователя
+// @Login login
+// @Password password
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "StatusBadRequest"
+// @Success 409 {string} string "Conflict"
+// @Router /api/user/register [get]
+func Register(db pkg.Database, authorizer pkg.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		user, err := bindUser(context)
 		if err != nil {
@@ -16,7 +24,7 @@ func Register(connection pkg.Database, authorizer pkg.Authorizer) gin.HandlerFun
 			return
 		}
 
-		if err := user.Register(context, connection); err != nil {
+		if err := user.Register(context, db); err != nil {
 			context.AbortWithStatus(http.StatusConflict)
 			return
 		}
@@ -32,7 +40,16 @@ func Register(connection pkg.Database, authorizer pkg.Authorizer) gin.HandlerFun
 	}
 }
 
-func Login(connection pkg.Database, authorizer pkg.Authorizer) gin.HandlerFunc {
+// Login godoc
+// @Summary Логин пользователя
+// @Login login
+// @Password password
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "StatusBadRequest"
+// @Failure 401 {string} string "StatusUnauthorized"
+// @Success 409 {string} string "Conflict"
+// @Router /api/user/login [get]
+func Login(db pkg.Database, authorizer pkg.Authorizer) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		user, err := bindUser(context)
 		if err != nil {
@@ -40,7 +57,7 @@ func Login(connection pkg.Database, authorizer pkg.Authorizer) gin.HandlerFunc {
 			return
 		}
 
-		dbUser, err := user.Login(context, connection)
+		dbUser, err := user.Login(context, db)
 		if err != nil || dbUser.Username != user.Username {
 			context.AbortWithStatus(http.StatusConflict)
 			return

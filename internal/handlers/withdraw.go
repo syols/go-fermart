@@ -8,7 +8,15 @@ import (
 	"github.com/syols/go-devops/internal/pkg"
 )
 
-func CreateWithdraw(connection pkg.Database) gin.HandlerFunc {
+// CreateWithdraw godoc
+// @Summary Списать баллы
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "StatusBadRequest"
+// @Failure 402 {string} string "StatusPaymentRequired"
+// @Failure 422 {string} string "StatusUnprocessableEntity"
+// @Success 500 {string} string "StatusInternalServerError"
+// @Router /balance/withdraw [get]
+func CreateWithdraw(db pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userID, isOk := context.Get("id")
 		if !isOk {
@@ -23,7 +31,7 @@ func CreateWithdraw(connection pkg.Database) gin.HandlerFunc {
 		}
 		withdraw.UserID = userID.(int)
 
-		balance, err := models.CalculateBalance(context, connection, withdraw.UserID)
+		balance, err := models.CalculateBalance(context, db, withdraw.UserID)
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return
@@ -34,7 +42,7 @@ func CreateWithdraw(connection pkg.Database) gin.HandlerFunc {
 			return
 		}
 
-		if err := withdraw.Create(context, connection); err != nil {
+		if err := withdraw.Create(context, db); err != nil {
 			context.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
@@ -42,7 +50,14 @@ func CreateWithdraw(connection pkg.Database) gin.HandlerFunc {
 	}
 }
 
-func Withdrawals(connection pkg.Database) gin.HandlerFunc {
+// Withdrawals godoc
+// @Summary История списаний
+// @Success 200 {object} Withdraws
+// @Success 201 {string} string "StatusNoContent"
+// @Failure 400 {string} string "StatusBadRequest"
+// @Success 500 {string} string "StatusInternalServerError"
+// @Router /balance/withdraw [get]
+func Withdrawals(db pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userID, isOk := context.Get("id")
 		if !isOk {
@@ -50,7 +65,7 @@ func Withdrawals(connection pkg.Database) gin.HandlerFunc {
 			return
 		}
 
-		withdraws, err := models.LoadWithdraw(context, connection, userID.(int))
+		withdraws, err := models.LoadWithdraw(context, db, userID.(int))
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return

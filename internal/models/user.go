@@ -18,16 +18,16 @@ func (user *User) Validate() error {
 	return validator.New().Struct(user)
 }
 
-func (user *User) Register(ctx context.Context, connection pkg.Database) error {
-	rows, err := connection.Execute(ctx, "user_register.sql", user)
+func (user *User) Register(ctx context.Context, db pkg.Database) error {
+	rows, err := db.Execute(ctx, "user_register.sql", user)
 	if err := rows.Err(); err != nil {
 		return err
 	}
 	return err
 }
 
-func (user *User) Login(ctx context.Context, connection pkg.Database) (*User, error) {
-	rows, err := connection.Execute(ctx, "user_login.sql", user)
+func (user *User) Login(ctx context.Context, db pkg.Database) (*User, error) {
+	rows, err := db.Execute(ctx, "user_login.sql", user)
 	if err != nil {
 		return nil, err
 	}
@@ -37,8 +37,8 @@ func (user *User) Login(ctx context.Context, connection pkg.Database) (*User, er
 	return user.bindUser(rows)
 }
 
-func (user *User) Verify(ctx context.Context, connection pkg.Database) (*User, error) {
-	rows, err := connection.Execute(ctx, "user_select.sql", user)
+func (user *User) Verify(ctx context.Context, db pkg.Database) (*User, error) {
+	rows, err := db.Execute(ctx, "user_select.sql", user)
 	if err != nil {
 		return nil, err
 	}

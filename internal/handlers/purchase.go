@@ -9,7 +9,17 @@ import (
 	"github.com/syols/go-devops/internal/pkg"
 )
 
-func CreatePurchase(connection pkg.Database, sess *pkg.Session) gin.HandlerFunc {
+// CreatePurchase godoc
+// @Summary Создание заказа
+// @ID userID
+// @Status: NewOrderStatus,
+// @Action: PurchaseOrderAction,
+// @Success 200 {string} string "OK"
+// @Success 201 {string} string "StatusInternalServerError"
+// @Success 409 {string} string "StatusUnprocessableEntity"
+// @Failure 500 {string} string "StatusInternalServerError"
+// @Router /orders [post]
+func CreatePurchase(db pkg.Database, sess *pkg.Session) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		bytes, err := ioutil.ReadAll(context.Request.Body)
 		if err != nil {
@@ -29,7 +39,7 @@ func CreatePurchase(connection pkg.Database, sess *pkg.Session) gin.HandlerFunc 
 			return
 		}
 
-		dbPurchase, err := models.LoadPurchase(context, connection, purchase.Number)
+		dbPurchase, err := models.LoadPurchase(context, db, purchase.Number)
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return
@@ -44,7 +54,7 @@ func CreatePurchase(connection pkg.Database, sess *pkg.Session) gin.HandlerFunc 
 			return
 		}
 
-		if err := purchase.Create(context, connection); err != nil {
+		if err := purchase.Create(context, db); err != nil {
 			context.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
@@ -59,7 +69,18 @@ func CreatePurchase(connection pkg.Database, sess *pkg.Session) gin.HandlerFunc 
 	}
 }
 
-func Purchases(connection pkg.Database) gin.HandlerFunc {
+// Purchases godoc
+// @Summary Список заказов
+// @ID userID
+// @Status: NewOrderStatus,
+// @Action: PurchaseOrderAction,
+// @Success 200 {objects} Purchase
+// @Success 204 {string} string "StatusNoContent"
+// @Success 400 {string} string "StatusBadRequest"
+// @Success 409 {string} string "StatusUnprocessableEntity"
+// @Failure 500 {string} string "StatusInternalServerError"
+// @Router /orders [get]
+func Purchases(db pkg.Database) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userID, isOk := context.Get("id")
 		if !isOk {
@@ -67,7 +88,7 @@ func Purchases(connection pkg.Database) gin.HandlerFunc {
 			return
 		}
 
-		purchases, err := models.LoadPurchases(context, connection, userID.(int))
+		purchases, err := models.LoadPurchases(context, db, userID.(int))
 		if err != nil {
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return

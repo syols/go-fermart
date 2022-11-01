@@ -22,7 +22,8 @@ type Server struct {
 
 func NewServer(settings config.Config) (Server, error) {
 	auth := pkg.NewAuthorizer(settings)
-	db, err := pkg.NewDatabaseConnection(settings)
+	conn := pkg.NewDatabaseURLConnection(settings)
+	db, err := pkg.NewDatabase(conn)
 	if err != nil {
 		return Server{}, err
 	}
@@ -73,6 +74,7 @@ func router(db pkg.Database, auth pkg.Authorizer, sess *pkg.Session) *gin.Engine
 	balance.GET("/balance", handlers.Balance(db))
 	balance.POST("/balance/withdraw", handlers.CreateWithdraw(db))
 	balance.GET("/withdrawals", handlers.Withdrawals(db))
+	//pprof.Register(router, "debug/pprof")
 	return router
 }
 
