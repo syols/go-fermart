@@ -13,22 +13,20 @@ import (
 	"github.com/syols/go-devops/internal/pkg"
 )
 
-func database() (*pkg.Database, error) {
-	mockDb, mock, err := sqlmock.New()
+const SelectQuery = "SELECT (*)*"
+
+func balanceDatabase() (*pkg.Database, error) {
+	mockDb, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
 		return nil, err
 	}
-	query := "SELECT orders.user_id, " +
-		"SUM(CASE action WHEN 'PURCHASE' THEN score ELSE 0 END) - " +
-		"SUM(CASE action WHEN 'WITHDRAW' THEN score ELSE 0 END) " +
-		"AS current, SUM(CASE action WHEN 'WITHDRAW' " +
-		"THEN score ELSE 0 END) AS withdrawn FROM orders WHERE user_id = 1 AND status = 'PROCESSED' GROUP BY user_id;"
-	mock.ExpectQuery(query).
-		WithArgs("login", "password").WillReturnRows(sqlmock.NewRows([]string{"user_id", "current", "withdrawn"}).
-		AddRow(0, 1, 2))
-	conn := pkg.NewSqlConnection(mockDb, "sqlmock")
-	db, err := pkg.NewDatabase(conn)
-	db.Scripts["user_balance.sql"] = query
+
+	mock.ExpectQuery(SelectQuery).WillReturnRows(sqlmock.NewRows([]string{"user_id", "current", "withdrawn"}).AddRow(0, 1, 2))
+	db, err := pkg.NewDatabase(pkg.NewSqlConnection(mockDb, "sqlmock"))
+	if err != nil {
+		return nil, err
+	}
+	db.Scripts["user_balance.sql"] = SelectQuery
 	return &db, err
 }
 
@@ -39,7 +37,7 @@ func router(database pkg.Database) *gin.Engine {
 }
 
 func TestBalanceHandler(t *testing.T) {
-	database, err := database()
+	database, err := balanceDatabase()
 	assert.NoError(t, err)
 
 	router := router(*database)

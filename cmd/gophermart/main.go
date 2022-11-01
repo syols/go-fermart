@@ -31,7 +31,7 @@ func main() {
 	}
 	server.Run()
 	wg.Wait()
-	
+
 	for err := range errs { // TODO
 		log.Print(err)
 	}

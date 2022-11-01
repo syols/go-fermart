@@ -2,12 +2,9 @@ package pkg
 
 import (
 	"context"
-	"errors"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 
-	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
@@ -29,15 +26,7 @@ func NewDatabase(connectionCreator DatabaseConnectionCreator) (db Database, err 
 		Scripts:    map[string]string{},
 		connection: connectionCreator,
 	}
-
-	m, err := migrate.New(MigrationPath, connectionCreator.Url())
-	if err != nil {
-		return db, err
-	}
-
-	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return db, err
-	}
+	err = connectionCreator.Migrate()
 	return
 }
 
@@ -51,14 +40,7 @@ func (d *Database) Execute(ctx context.Context, filename string, model interface
 	if err != nil {
 		return nil, err
 	}
-
-	defer func(db *sqlx.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(db)
-
+	defer d.connection.Close(db)
 	return db.NamedQuery(script, model)
 }
 

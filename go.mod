@@ -3,12 +3,14 @@ module github.com/syols/go-devops
 go 1.18
 
 require (
+	bou.ke/monkey v1.0.2
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/aws/aws-sdk-go v1.17.7
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19
 	github.com/gin-gonic/gin v1.8.1
+	github.com/go-playground/assert/v2 v2.0.1
 	github.com/go-playground/validator/v10 v10.11.0
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/jmoiron/sqlx v1.3.1
