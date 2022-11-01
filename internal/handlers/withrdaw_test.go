@@ -16,7 +16,7 @@ import (
 const InsertQuery = "INSERT *"
 
 func withdrawalsDatabase() (*pkg.Database, error) {
-	mockDb, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func withdrawalsDatabase() (*pkg.Database, error) {
 
 	mock.ExpectQuery(InsertQuery).WillReturnRows(sqlmock.NewRows([]string{"user_id", "number", "score", "status", "action"}))
 
-	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDb, "sqlmock"))
+	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDB, "sqlmock"))
 	if err != nil {
 		return nil, err
 	}

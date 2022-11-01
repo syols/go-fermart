@@ -16,13 +16,13 @@ import (
 const SelectQuery = "SELECT (*)*"
 
 func balanceDatabase() (*pkg.Database, error) {
-	mockDb, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
 		return nil, err
 	}
 
 	mock.ExpectQuery(SelectQuery).WillReturnRows(sqlmock.NewRows([]string{"user_id", "current", "withdrawn"}).AddRow(0, 1, 2))
-	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDb, "sqlmock"))
+	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDB, "sqlmock"))
 	if err != nil {
 		return nil, err
 	}

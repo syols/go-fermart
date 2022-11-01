@@ -15,12 +15,12 @@ import (
 )
 
 func userRegisterDatabase() (*pkg.Database, error) {
-	mockDb, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
 		return nil, err
 	}
 	mock.ExpectQuery(InsertQuery).WillReturnRows(sqlmock.NewRows([]string{"login", "password"}))
-	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDb, "sqlmock"))
+	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDB, "sqlmock"))
 	if err != nil {
 		return nil, err
 	}
@@ -29,12 +29,12 @@ func userRegisterDatabase() (*pkg.Database, error) {
 }
 
 func userLoginDatabase() (*pkg.Database, error) {
-	mockDb, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
 		return nil, err
 	}
 	mock.ExpectQuery(SelectQuery).WillReturnRows(sqlmock.NewRows([]string{"id", "login", "password"}).AddRow(0, "login", "password"))
-	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDb, "sqlmock"))
+	db, err := pkg.NewDatabase(pkg.NewSQLConnection(mockDB, "sqlmock"))
 	if err != nil {
 		return nil, err
 	}
