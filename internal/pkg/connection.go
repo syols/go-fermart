@@ -73,6 +73,4 @@ func (c SQLConnection) Migrate() error {
 	return nil
 }
 
-func (c SQLConnection) Close(_ *sqlx.DB) {
-	return
-}
+func (c SQLConnection) Close(_ *sqlx.DB) {}

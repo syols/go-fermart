@@ -1,17 +1,18 @@
 package pkg
 
 import (
-	"bou.ke/monkey"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"bou.ke/monkey"
+	"github.com/stretchr/testify/assert"
 )
 
 const Token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk0NjY5MjA2MSwiaXNz" +
 	"IjoidXNlcm5hbWUiLCJVc2VybmFtZSI6InVzZXJuYW1lIn0.7Atr6d4ZpCmkGdqrE6yiBfnVktp7wrMURy4WUmRvdXI"
 
 func TestAuthorizerHandler(t *testing.T) {
-	auth :=  Authorizer{
+	auth := Authorizer{
 		sign: []byte("some_sign"),
 	}
 	monkey.Patch(time.Now, func() time.Time {
@@ -23,10 +24,12 @@ func TestAuthorizerHandler(t *testing.T) {
 }
 
 func TestVerifyTokenHandler(t *testing.T) {
-	auth :=  Authorizer{
+	auth := Authorizer{
 		sign: []byte("some_sign"),
 	}
 	createToken, err := auth.CreateToken("username")
+	assert.NoError(t, err)
+
 	username, err := auth.VerifyToken(createToken)
 	assert.NoError(t, err)
 	assert.Equal(t, username, "username")

@@ -47,7 +47,7 @@ func TestBalanceHandler(t *testing.T) {
 
 	var first, second models.Balance
 	assert.NoError(t, json.Unmarshal([]byte("{\"current\": 1, \"withdrawn\": 2}"), &first))
-	assert.NoError(t, json.Unmarshal([]byte(w.Body.String()), &second))
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &second))
 
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, first, second)
